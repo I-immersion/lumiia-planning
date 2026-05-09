@@ -1349,7 +1349,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v1.2</div>
+    <div class="auth-sub">Planning · v1.3</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1360,7 +1360,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.2</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.3</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -2212,26 +2212,15 @@ function renderTasks() {
     const cat = state.categories[task.categoryId];
     const hasSubs = cat.subcategories && Object.keys(cat.subcategories).length > 0;
 
-    // If cat has sub-cats AND task has no subcategoryId, do NOT render in cat lane (cat is summary)
-    if (hasSubs && !task.subcategoryId) {
-      // Show this task in the first available subcat OR as a warning? We chose: in the cat-only lane fallback
-      // But there's no cat-only lane when cat has subs. So skip rendering here, but flag in conflicts.
-      // (Tasks that need migration: were created at cat level before subs existed)
-      continue;
-    }
-
-    if (cat.expanded === false && task.subcategoryId) {
-      // Cat collapsed: show subcat tasks aggregated... actually skip rendering
-      continue;
-    }
+    // If cat has sub-cats AND task has no subcategoryId, skip (cat is summary-only)
+    if (hasSubs && !task.subcategoryId) continue;
 
     const key = `${task.categoryId}|${task.subcategoryId || ''}`;
-    let lane = laneMap.get(key);
-    if (!lane && task.subcategoryId) {
-      // Sub deleted — fall back to main lane (only if cat has no other subs)
-      lane = laneMap.get(`${task.categoryId}|`);
-    }
-    if (lane) renderOneTask(lane, taskId, task, cat, conflictsByTask[taskId] || []);
+    const lane = laneMap.get(key);
+    // Don't render: sub-lane doesn't exist (cat collapsed locally) or lane is summary (non-droppable)
+    if (!lane) continue;
+    if (lane.dataset.summary === '1') continue;
+    renderOneTask(lane, taskId, task, cat, conflictsByTask[taskId] || []);
   }
 }
 
