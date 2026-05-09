@@ -274,6 +274,16 @@ header {
   border-bottom: 1px solid var(--border);
   gap: 8px;
 }
+.sidebar-action {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.btn.btn-block {
+  width: 100%;
+  justify-content: center;
+}
 .sidebar-title {
   font-size: 11px;
   font-weight: 600;
@@ -454,6 +464,20 @@ header {
   letter-spacing: -0.02em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   flex-shrink: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.filter-person-chip:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.filter-person-name, .filter-rub-name {
+  flex: 1;
+  padding: 2px 0;
+  border-radius: 4px;
+  transition: color 0.12s;
+}
+.filter-person-name:hover, .filter-rub-name:hover {
+  color: var(--accent);
 }
 .cat-row {
   height: var(--row-h);
@@ -1242,6 +1266,75 @@ header {
   padding: 12px 0;
 }
 
+/* === APPROX TOGGLE === */
+.approx-toggle {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-strong);
+  background: var(--bg-elev);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.12s, background 0.12s;
+}
+.approx-toggle:hover { border-color: var(--text-dim); }
+.approx-toggle-icon {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  border: 1px dashed var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.approx-toggle-icon svg { width: 14px; height: 14px; }
+.approx-toggle-text {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.approx-toggle.on {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: #F59E0B;
+}
+.approx-toggle.on .approx-toggle-icon {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #000;
+}
+.approx-toggle.on .approx-toggle-text {
+  color: #FBBF24;
+  font-weight: 600;
+}
+
+/* === TASK APPROXIMATIVE STYLE === */
+.task.approx {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 6px,
+    rgba(0, 0, 0, 0.18) 6px,
+    rgba(0, 0, 0, 0.18) 7px
+  );
+  border-style: dashed !important;
+  border-width: 1.5px !important;
+}
+.task.approx::before {
+  content: "~";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+
 /* === STATUS === */
 #status {
   position: fixed;
@@ -1349,7 +1442,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v1.3</div>
+    <div class="auth-sub">Planning · v1.4</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1360,12 +1453,18 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.3</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.4</span></div>
+
+    <button class="btn btn-primary" id="btn-add-task">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nouvelle t&#226;che
+    </button>
 
     <div class="zoom-group" role="tablist">
-      <button class="zoom-btn" data-zoom="28">Compact</button>
-      <button class="zoom-btn active" data-zoom="40">Normal</button>
-      <button class="zoom-btn" data-zoom="64">Large</button>
+      <button class="zoom-btn" data-zoom="18">3 mois</button>
+      <button class="zoom-btn" data-zoom="28">2 mois</button>
+      <button class="zoom-btn active" data-zoom="60">1 mois</button>
+      <button class="zoom-btn" data-zoom="240">1 semaine</button>
     </div>
 
     <button class="btn" id="btn-today">
@@ -1384,11 +1483,6 @@ header {
     <button class="btn" id="btn-add-event" title="Nouvel &#233;v&#233;nement">
       <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 4 22 20 2 20"/></svg>
       &#201;v&#233;nement
-    </button>
-
-    <button class="btn btn-primary" id="btn-add-task">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nouvelle t&#226;che
     </button>
 
     <button class="btn btn-icon" id="btn-settings" title="R&#233;glages">
@@ -1519,7 +1613,7 @@ const state = {
   tasks: {},
   events: {},
   people: { ...DEFAULT_PEOPLE },
-  dayWidth: 40,
+  dayWidth: 60,
   activeFilter: null,    // legacy single user filter (kept for compat)
   filterPeople: null,    // Set of user ids to show, or null = show all
   filterRubriques: null, // Set of rubrique IDs, or null = show all
@@ -2277,6 +2371,7 @@ function renderOneTask(lane, taskId, task, cat, conflicts) {
   const node = document.createElement('div');
   let cls = 'task';
   if (task.status === 'done') cls += ' done';
+  if (task.approximate) cls += ' approx';
   if (conflicts && conflicts.length > 0) cls += ' has-conflict';
   node.className = cls;
   node.dataset.taskId = taskId;
@@ -2759,6 +2854,16 @@ function openRubriqueEditor(rubId) {
 }
 
 // ================================================================
+// SHIFT+WHEEL HORIZONTAL SCROLL (Chrome compat)
+// ================================================================
+document.getElementById('timeline-wrap').addEventListener('wheel', (e) => {
+  if (e.shiftKey && e.deltaY !== 0) {
+    e.preventDefault();
+    e.currentTarget.scrollLeft += e.deltaY;
+  }
+}, { passive: false });
+
+// ================================================================
 // FOLD BUTTONS
 // ================================================================
 // FOLD BUTTON (cycle 3 states: all / cats / rub)
@@ -2827,17 +2932,17 @@ document.getElementById('btn-filters').onclick = (e) => {
   const personHtml = peopleArr.map(([uid, p]) => {
     const checked = !state.filterPeople || state.filterPeople.has(uid);
     return `<div class="filter-item filter-person ${checked ? 'checked' : ''}" data-uid="${uid}">
-      <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div class="filter-person-chip" style="background:${p.color}">${escapeHtml(p.initial)}</div>
-      <div>${escapeHtml(p.name)}</div>
+      <div class="filter-checkbox" data-zone="toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="filter-person-chip" data-zone="only" style="background:${p.color}">${escapeHtml(p.initial)}</div>
+      <div class="filter-person-name" data-zone="only">${escapeHtml(p.name)}</div>
     </div>`;
   }).join('');
 
   const rubHtml = rubArr.map(([rid, r]) => {
     const checked = !state.filterRubriques || state.filterRubriques.has(rid);
     return `<div class="filter-item filter-rub ${checked ? 'checked' : ''}" data-rub-id="${rid}">
-      <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-      <div>${escapeHtml(r.name)}</div>
+      <div class="filter-checkbox" data-zone="toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="filter-rub-name" data-zone="only">${escapeHtml(r.name)}</div>
     </div>`;
   }).join('');
 
@@ -2858,34 +2963,60 @@ document.getElementById('btn-filters').onclick = (e) => {
   `;
   document.body.appendChild(filterDropdownEl);
 
-  // Person filter click
+  // Person filter click — checkbox toggles, picto/name selects only
   filterDropdownEl.querySelectorAll('.filter-person').forEach(it => {
     it.onclick = (ev) => {
       ev.stopPropagation();
       const uid = it.dataset.uid;
       const allUids = peopleArr.map(([id]) => id);
-      if (!state.filterPeople) state.filterPeople = new Set(allUids);
-      if (state.filterPeople.has(uid)) state.filterPeople.delete(uid);
-      else state.filterPeople.add(uid);
-      if (state.filterPeople.size === allUids.length) state.filterPeople = null;
-      it.classList.toggle('checked');
+      const zone = ev.target.closest('[data-zone]')?.dataset.zone;
+      if (zone === 'only') {
+        // Click on picto or name = isolate this one
+        // If already alone selected, restore all
+        if (state.filterPeople && state.filterPeople.size === 1 && state.filterPeople.has(uid)) {
+          state.filterPeople = null;
+        } else {
+          state.filterPeople = new Set([uid]);
+        }
+      } else {
+        // Click on checkbox = toggle this one
+        if (!state.filterPeople) state.filterPeople = new Set(allUids);
+        if (state.filterPeople.has(uid)) state.filterPeople.delete(uid);
+        else state.filterPeople.add(uid);
+        if (state.filterPeople.size === allUids.length) state.filterPeople = null;
+      }
+      // Re-render dropdown to reflect new state
+      const wasOpen = !!filterDropdownEl;
+      if (filterDropdownEl) { filterDropdownEl.remove(); filterDropdownEl = null; }
       updateFilterUI();
       renderAll();
+      if (wasOpen) document.getElementById('btn-filters').click();
     };
   });
-  // Rubrique filter click
+  // Rubrique filter click — same logic
   filterDropdownEl.querySelectorAll('.filter-rub').forEach(it => {
     it.onclick = (ev) => {
       ev.stopPropagation();
       const rid = it.dataset.rubId;
       const allRids = rubArr.map(([id]) => id);
-      if (!state.filterRubriques) state.filterRubriques = new Set(allRids);
-      if (state.filterRubriques.has(rid)) state.filterRubriques.delete(rid);
-      else state.filterRubriques.add(rid);
-      if (state.filterRubriques.size === allRids.length) state.filterRubriques = null;
-      it.classList.toggle('checked');
+      const zone = ev.target.closest('[data-zone]')?.dataset.zone;
+      if (zone === 'only') {
+        if (state.filterRubriques && state.filterRubriques.size === 1 && state.filterRubriques.has(rid)) {
+          state.filterRubriques = null;
+        } else {
+          state.filterRubriques = new Set([rid]);
+        }
+      } else {
+        if (!state.filterRubriques) state.filterRubriques = new Set(allRids);
+        if (state.filterRubriques.has(rid)) state.filterRubriques.delete(rid);
+        else state.filterRubriques.add(rid);
+        if (state.filterRubriques.size === allRids.length) state.filterRubriques = null;
+      }
+      const wasOpen = !!filterDropdownEl;
+      if (filterDropdownEl) { filterDropdownEl.remove(); filterDropdownEl = null; }
       updateFilterUI();
       renderAll();
+      if (wasOpen) document.getElementById('btn-filters').click();
     };
   });
   // Toggle hideDone
@@ -3190,7 +3321,25 @@ function openTaskEditor(taskId) {
       <label class="field-label">Notes</label>
       <textarea id="t-notes" placeholder="Optionnel">${escapeHtml(task.notes || '')}</textarea>
     </div>
+    <div class="approx-toggle ${task.approximate ? 'on' : ''}" id="t-approx-toggle" title="P\u00e9riode approximative \u00e0 confirmer">
+      <div class="approx-toggle-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="approx-toggle-text">${task.approximate ? 'P\u00e9riode approximative \u2014 \u00e0 confirmer' : 'Marquer la p\u00e9riode comme approximative'}</div>
+    </div>
   `;
+
+  // Approx toggle
+  document.getElementById('t-approx-toggle').onclick = () => {
+    const cur = state.tasks[taskId];
+    const newApprox = !(cur && cur.approximate);
+    saveTask(taskId, { approximate: newApprox });
+    const tog = document.getElementById('t-approx-toggle');
+    tog.classList.toggle('on', newApprox);
+    tog.querySelector('.approx-toggle-text').textContent = newApprox
+      ? 'P\u00e9riode approximative \u2014 \u00e0 confirmer'
+      : 'Marquer la p\u00e9riode comme approximative';
+  };
 
   // Status toggle
   document.getElementById('t-status-toggle').onclick = () => {
