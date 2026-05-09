@@ -1176,6 +1176,72 @@ header {
   text-overflow: ellipsis;
 }
 
+/* === EVENT LIST IN EDITOR === */
+.event-list-wrap {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.event-list-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.event-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.event-list-item:hover { background: var(--bg-hover); }
+.event-list-item.current {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  padding: 7px 9px;
+}
+.event-list-item.past { opacity: 0.55; }
+.event-list-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.event-list-info {
+  flex: 1;
+  min-width: 0;
+}
+.event-list-title-text {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.event-list-date {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.event-list-empty {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+}
+
 /* === STATUS === */
 #status {
   position: fixed;
@@ -1283,7 +1349,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v1.1</div>
+    <div class="auth-sub">Planning · v1.2</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1294,7 +1360,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.1</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.2</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -2356,7 +2422,9 @@ function openEventEditor(eventId, defaults = null) {
       <label class="field-label">Notes</label>
       <textarea id="ev-notes" placeholder="Optionnel">${escapeHtml(ev.notes || '')}</textarea>
     </div>
+    <div class="event-list-wrap" id="ev-list-wrap"></div>
   `;
+  renderEventList(eventId);
   body.querySelectorAll('.color-swatch').forEach(s => {
     s.onclick = () => {
       body.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
@@ -2393,6 +2461,54 @@ function openEventEditor(eventId, defaults = null) {
 document.getElementById('btn-add-event').onclick = () => {
   openEventEditor('_new', { title: '', date: isoDate(new Date()), color: '#3B82F6', notes: '' });
 };
+
+function renderEventList(currentId) {
+  const wrap = document.getElementById('ev-list-wrap');
+  if (!wrap) return;
+  const all = Object.entries(state.events || {})
+    .filter(([_, e]) => e && e.date)
+    .sort((a, b) => a[1].date.localeCompare(b[1].date));
+  if (all.length === 0) {
+    wrap.innerHTML = '<div class="event-list-empty">Aucun \u00e9v\u00e9nement enregistr\u00e9 pour l\'instant.</div>';
+    return;
+  }
+  // Find today's index to show a "today" marker
+  const todayStr = isoDate(new Date());
+  wrap.innerHTML = `
+    <div class="event-list-title">Tous les \u00e9v\u00e9nements (${all.length})</div>
+    <div class="event-list">
+      ${all.map(([eid, e]) => {
+        const isPast = e.date < todayStr;
+        const isCurrent = eid === currentId;
+        const dateLabel = formatDateFR(e.date);
+        return `<div class="event-list-item ${isCurrent ? 'current' : ''} ${isPast ? 'past' : ''}" data-eid="${eid}">
+          <div class="event-list-dot" style="background:${e.color || '#3B82F6'}"></div>
+          <div class="event-list-info">
+            <div class="event-list-title-text">${escapeHtml(e.title || 'Sans titre')}</div>
+            <div class="event-list-date">${dateLabel}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  wrap.querySelectorAll('.event-list-item').forEach(it => {
+    it.onclick = () => {
+      const eid = it.dataset.eid;
+      if (eid !== currentId) openEventEditor(eid);
+    };
+  });
+}
+
+function formatDateFR(iso) {
+  const d = parseISO(iso);
+  if (!d || isNaN(d.getTime())) return iso;
+  const dayNames = ['dim','lun','mar','mer','jeu','ven','sam'];
+  const day = dayNames[d.getDay()];
+  const num = d.getDate();
+  const month = MONTHS_FR[d.getMonth()].toLowerCase();
+  const year = d.getFullYear();
+  return `${day} ${num} ${month} ${year}`;
+}
 
 // ================================================================
 // DRAG & RESIZE
