@@ -270,19 +270,164 @@ header {
   height: var(--time-header-h);
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 12px 0 20px;
   border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.sidebar-title {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-faint);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  flex: 1;
 }
+.fold-buttons {
+  display: inline-flex;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 1px;
+}
+.fold-btn {
+  width: 24px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  transition: all 0.12s;
+}
+.fold-btn:hover { background: var(--bg-hover); color: var(--text); }
+.fold-btn svg { width: 12px; height: 12px; }
 .sidebar-list {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 80px;
 }
+.sidebar-foot {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg);
+}
+.sidebar-foot .add-cat-btn { margin: 0; width: 100%; }
+
+/* === RUBRIQUES === */
+.rub-row {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 14px;
+  gap: 6px;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+  border-top: 2px solid var(--border-strong);
+  position: relative;
+  transition: background 0.1s;
+}
+.rub-row:first-child { border-top: 1px solid var(--border-strong); }
+.rub-row:hover { background: var(--bg-elev); }
+.rub-name {
+  flex: 1;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rub-row .cat-actions { display: none; }
+.rub-row:hover .cat-actions { display: flex; }
+.rub-row.collapsed .cat-arrow { transform: rotate(-90deg); }
+
+.lane.rub-lane {
+  height: 36px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+  border-top: 2px solid var(--border-strong);
+  position: relative;
+  pointer-events: none;
+}
+.lane.rub-lane::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-strong) 0%, transparent 80%);
+}
+
+/* === FILTER DROPDOWN === */
+.filter-badge {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: 16px; height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+.filter-dropdown {
+  position: absolute;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 8px;
+  min-width: 240px;
+  z-index: 200;
+  box-shadow: var(--shadow);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.filter-dropdown.hidden { display: none; }
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+}
+.filter-item:hover { background: var(--bg-hover); }
+.filter-checkbox {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.filter-item.checked .filter-checkbox {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.filter-item.checked .filter-checkbox svg { display: block; }
+.filter-checkbox svg { width: 10px; height: 10px; color: white; display: none; }
+.filter-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 4px;
+}
+.filter-action {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 6px;
+}
+.filter-action:hover { background: var(--bg-hover); color: var(--text); }
 .cat-row {
   height: var(--row-h);
   display: flex;
@@ -347,17 +492,18 @@ header {
 .subcat-row:hover .cat-actions { display: flex; }
 
 .add-cat-btn {
-  margin: 16px;
-  width: calc(100% - 32px);
-  height: 38px;
+  margin: 0;
+  width: 100%;
+  height: 36px;
   border: 1px dashed var(--border-strong);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--text-dim);
   font-size: 12px;
   font-weight: 500;
   display: flex; align-items: center; justify-content: center;
   gap: 6px;
   transition: all 0.15s;
+  background: transparent;
 }
 .add-cat-btn:hover {
   border-color: var(--accent);
@@ -884,7 +1030,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.4</div>
+    <div class="auth-sub">Planning · v0.5</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -895,7 +1041,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.4</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.5</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -909,6 +1055,12 @@ header {
     </button>
 
     <div class="people-filter" id="people-filter"></div>
+
+    <button class="btn" id="btn-filter-rub" title="Filtrer par rubrique">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <span id="filter-rub-label">Rubriques</span>
+      <span class="filter-badge" id="filter-rub-badge" hidden></span>
+    </button>
 
     <div class="header-spacer"></div>
 
@@ -930,12 +1082,31 @@ header {
 
   <div class="main-area">
     <aside id="sidebar">
-      <div class="sidebar-head">Cat&#233;gories</div>
+      <div class="sidebar-head">
+        <span class="sidebar-title">Cat&#233;gories</span>
+        <div class="fold-buttons">
+          <button class="fold-btn" data-fold="all" title="Tout d&#233;plier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/><polyline points="6 9 12 3 18 9" transform="translate(0 12)"/></svg>
+          </button>
+          <button class="fold-btn" data-fold="cats" title="Niveau cat&#233;gories">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </button>
+          <button class="fold-btn" data-fold="rub" title="Replier rubriques">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/><polyline points="6 15 12 21 18 15" transform="translate(0 -12)"/></svg>
+          </button>
+        </div>
+      </div>
       <div class="sidebar-list" id="cat-list"></div>
-      <button class="add-cat-btn" id="btn-add-cat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nouvelle cat&#233;gorie
-      </button>
+      <div class="sidebar-foot">
+        <button class="add-cat-btn" id="btn-add-rub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouvelle rubrique
+        </button>
+        <button class="add-cat-btn" id="btn-add-cat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouvelle cat&#233;gorie
+        </button>
+      </div>
     </aside>
 
     <div id="timeline-wrap">
@@ -1031,15 +1202,18 @@ let dynamicEmailMap = {};
 
 const state = {
   currentUser: null,
-  categories: {},        // { catId: { name, color, order, expanded, subcategories: {subId: {name, order}} } }
-  tasks: {},             // { taskId: { title, categoryId, subcategoryId?, startDate, endDate, assignees:[], notes, color? } }
+  rubriques: {},         // { rubId: { name, order, expanded } }
+  categories: {},        // { catId: { name, color, order, expanded, rubriqueId?, subcategories } }
+  tasks: {},
   people: { ...DEFAULT_PEOPLE },
   dayWidth: 40,
   activeFilter: null,    // user id or null
-  rangeStart: null,      // Date (start of timeline)
-  rangeEnd: null,        // Date (end)
+  filterRubriques: null, // Set of rubrique IDs to show, or null = show all
+  rangeStart: null,
+  rangeEnd: null,
   editingTask: null,
-  editingCategory: null
+  editingCategory: null,
+  editingRubrique: null
 };
 
 // ================================================================
@@ -1170,6 +1344,11 @@ function initSync() {
     renderAll();
   });
 
+  onValue(ref(db, `${ROOT}/rubriques`), snap => {
+    state.rubriques = snap.val() || {};
+    renderAll();
+  });
+
   onValue(ref(db, `${ROOT}/categories`), snap => {
     state.categories = snap.val() || {};
     computeRange();
@@ -1277,41 +1456,102 @@ function renderTimeHeader() {
   }
 }
 
+// --- Helpers: build hierarchical view ---
+function buildHierarchy() {
+  // Returns array of { rubrique, cats: [{cat, subs: []}] } in display order
+  // Categories without a rubriqueId are grouped under a virtual "Sans rubrique"
+  const byRub = new Map();
+  // Real rubriques
+  const rubArr = Object.entries(state.rubriques).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+  rubArr.forEach(([rid, r]) => {
+    byRub.set(rid, { rubrique: { id: rid, ...r }, cats: [] });
+  });
+  // Virtual rubrique for cats without rubriqueId
+  byRub.set('_orphans', { rubrique: { id: '_orphans', name: 'Sans rubrique', order: 9999, expanded: true, virtual: true }, cats: [] });
+
+  const catArr = Object.entries(state.categories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+  catArr.forEach(([cid, c]) => {
+    const rid = c.rubriqueId && byRub.has(c.rubriqueId) ? c.rubriqueId : '_orphans';
+    const subs = c.subcategories ? Object.entries(c.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0)).map(([sid, s]) => ({ id: sid, ...s })) : [];
+    byRub.get(rid).cats.push({ cat: { id: cid, ...c }, subs });
+  });
+
+  // Apply filter
+  let result = Array.from(byRub.values()).sort((a,b) => (a.rubrique.order||0) - (b.rubrique.order||0));
+  if (state.filterRubriques) {
+    result = result.filter(r => state.filterRubriques.has(r.rubrique.id));
+  }
+  // Hide empty virtual orphans
+  result = result.filter(r => !(r.rubrique.virtual && r.cats.length === 0));
+  return result;
+}
+
 // --- SIDEBAR ---
 function renderSidebar() {
   const list = document.getElementById('cat-list');
   list.innerHTML = '';
-  const sorted = Object.entries(state.categories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
-  for (const [catId, cat] of sorted) {
-    const expanded = cat.expanded !== false;
-    const row = document.createElement('div');
-    row.className = 'cat-row' + (expanded ? '' : ' collapsed');
-    row.dataset.catId = catId;
-    row.innerHTML = `
+  const hierarchy = buildHierarchy();
+
+  for (const { rubrique, cats } of hierarchy) {
+    // Rubrique row
+    const rubRow = document.createElement('div');
+    rubRow.className = 'rub-row' + (rubrique.expanded === false ? ' collapsed' : '');
+    rubRow.dataset.rubId = rubrique.id;
+    const isVirtual = !!rubrique.virtual;
+    rubRow.innerHTML = `
       <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="cat-color" style="background:${cat.color || PALETTE[0]}"></div>
-      <div class="cat-name">${escapeHtml(cat.name || 'Sans titre')}</div>
+      <div class="rub-name">${escapeHtml(rubrique.name)}</div>
+      ${isVirtual ? '' : `
       <div class="cat-actions">
-        <button class="cat-mini-btn" data-action="add-sub" title="Sous-cat&#233;gorie">
+        <button class="cat-mini-btn" data-action="add-cat-in-rub" title="Cat\u00e9gorie">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
-        <button class="cat-mini-btn" data-action="edit-cat" title="Modifier">
+        <button class="cat-mini-btn" data-action="edit-rub" title="Modifier">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-      </div>
+      </div>`}
     `;
-    row.onclick = (e) => {
+    rubRow.onclick = (e) => {
       const act = e.target.closest('[data-action]')?.dataset.action;
-      if (act === 'add-sub') { e.stopPropagation(); addSubcategory(catId); return; }
-      if (act === 'edit-cat') { e.stopPropagation(); openCategoryEditor(catId); return; }
-      // toggle expand
-      saveCategory(catId, { expanded: !expanded });
+      if (act === 'add-cat-in-rub') { e.stopPropagation(); addCategoryInRubrique(rubrique.id); return; }
+      if (act === 'edit-rub') { e.stopPropagation(); openRubriqueEditor(rubrique.id); return; }
+      if (isVirtual) return;
+      update(ref(db, `${ROOT}/rubriques/${rubrique.id}`), { expanded: rubrique.expanded === false });
     };
-    list.appendChild(row);
+    list.appendChild(rubRow);
 
-    if (expanded && cat.subcategories) {
-      const subs = Object.entries(cat.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
-      for (const [subId, sub] of subs) {
+    if (rubrique.expanded === false) continue;
+
+    // Cats under this rubrique
+    for (const { cat, subs } of cats) {
+      const catRow = document.createElement('div');
+      catRow.className = 'cat-row' + (cat.expanded === false ? ' collapsed' : '');
+      catRow.dataset.catId = cat.id;
+      catRow.innerHTML = `
+        <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="cat-color" style="background:${cat.color || PALETTE[0]}"></div>
+        <div class="cat-name">${escapeHtml(cat.name || 'Sans titre')}</div>
+        <div class="cat-actions">
+          <button class="cat-mini-btn" data-action="add-sub" title="Sous-cat\u00e9gorie">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="cat-mini-btn" data-action="edit-cat" title="Modifier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      `;
+      catRow.onclick = (e) => {
+        const act = e.target.closest('[data-action]')?.dataset.action;
+        if (act === 'add-sub') { e.stopPropagation(); addSubcategory(cat.id); return; }
+        if (act === 'edit-cat') { e.stopPropagation(); openCategoryEditor(cat.id); return; }
+        saveCategory(cat.id, { expanded: cat.expanded === false });
+      };
+      list.appendChild(catRow);
+
+      if (cat.expanded === false) continue;
+
+      // Subcats under this cat
+      for (const sub of subs) {
         const sRow = document.createElement('div');
         sRow.className = 'subcat-row';
         sRow.innerHTML = `
@@ -1327,8 +1567,8 @@ function renderSidebar() {
         `;
         sRow.onclick = (e) => {
           const act = e.target.closest('[data-action]')?.dataset.action;
-          if (act === 'edit-sub') { e.stopPropagation(); editSubcategoryName(catId, subId, sub.name); return; }
-          if (act === 'del-sub') { e.stopPropagation(); confirmDeleteSubcategory(catId, subId); return; }
+          if (act === 'edit-sub') { e.stopPropagation(); editSubcategoryName(cat.id, sub.id, sub.name); return; }
+          if (act === 'del-sub') { e.stopPropagation(); confirmDeleteSubcategory(cat.id, sub.id); return; }
         };
         list.appendChild(sRow);
       }
@@ -1344,15 +1584,22 @@ function renderLanes() {
   const totalW = nDays * state.dayWidth;
   area.style.width = totalW + 'px';
 
-  const sorted = Object.entries(state.categories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
-  for (const [catId, cat] of sorted) {
-    const expanded = cat.expanded !== false;
-    const lane = createLane(catId, null);
-    area.appendChild(lane);
-    if (expanded && cat.subcategories) {
-      const subs = Object.entries(cat.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
-      for (const [subId] of subs) {
-        const sLane = createLane(catId, subId);
+  const hierarchy = buildHierarchy();
+  for (const { rubrique, cats } of hierarchy) {
+    // Rubrique lane (decorative separator, no tasks)
+    const rubLane = document.createElement('div');
+    rubLane.className = 'lane rub-lane';
+    rubLane.dataset.rubId = rubrique.id;
+    rubLane.style.width = totalW + 'px';
+    area.appendChild(rubLane);
+
+    if (rubrique.expanded === false) continue;
+
+    for (const { cat, subs } of cats) {
+      area.appendChild(createLane(cat.id, null));
+      if (cat.expanded === false) continue;
+      for (const sub of subs) {
+        const sLane = createLane(cat.id, sub.id);
         sLane.classList.add('subcat');
         area.appendChild(sLane);
       }
@@ -1427,6 +1674,9 @@ function renderOneTask(lane, taskId, task, cat) {
   const endI = dayIndex(end);
   if (endI < 0 || startI > diffDays(state.rangeStart, state.rangeEnd)) return;
 
+  // Filter by person: hide if not assigned to active filter user
+  if (state.activeFilter && !(task.assignees || []).includes(state.activeFilter)) return;
+
   const node = document.createElement('div');
   node.className = 'task';
   node.dataset.taskId = taskId;
@@ -1434,11 +1684,6 @@ function renderOneTask(lane, taskId, task, cat) {
   node.style.background = `linear-gradient(180deg, ${color} 0%, ${shade(color, -12)} 100%)`;
   node.style.left = (startI * state.dayWidth + 2) + 'px';
   node.style.width = ((endI - startI + 1) * state.dayWidth - 4) + 'px';
-
-  // Filter dim
-  if (state.activeFilter && !(task.assignees || []).includes(state.activeFilter)) {
-    node.classList.add('dimmed');
-  }
 
   const peopleHtml = (task.assignees || []).map(uid => {
     const p = state.people[uid] || { initial: '?', color: '#666' };
@@ -1618,13 +1863,25 @@ function askText({ title = 'Saisir', placeholder = '', initial = '', okLabel = '
 function openCategoryEditor(catId) {
   state.editingCategory = catId;
   state.editingTask = null;
+  state.editingRubrique = null;
   const cat = state.categories[catId];
   document.getElementById('editor-title').textContent = 'Cat\u00e9gorie';
   const body = document.getElementById('editor-body');
+
+  const rubArr = Object.entries(state.rubriques).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+  const rubSelect = `<select id="cat-rub">
+    <option value="">— Sans rubrique —</option>
+    ${rubArr.map(([rid, r]) => `<option value="${rid}" ${rid === cat.rubriqueId ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
+  </select>`;
+
   body.innerHTML = `
     <div class="field">
       <label class="field-label">Nom</label>
       <input type="text" id="cat-name" value="${escapeHtml(cat.name || '')}">
+    </div>
+    <div class="field">
+      <label class="field-label">Rubrique</label>
+      ${rubSelect}
     </div>
     <div class="field">
       <label class="field-label">Couleur</label>
@@ -1649,7 +1906,8 @@ function openCategoryEditor(catId) {
     const name = document.getElementById('cat-name').value.trim();
     if (!name) return;
     const color = body.querySelector('.color-swatch.active')?.dataset.color || cat.color;
-    saveCategory(catId, { name, color });
+    const rubriqueId = document.getElementById('cat-rub').value || null;
+    saveCategory(catId, { name, color, rubriqueId });
     closeEditor();
   };
   document.getElementById('cat-cancel').onclick = closeEditor;
@@ -1659,6 +1917,180 @@ function openCategoryEditor(catId) {
     closeEditor();
   };
   document.getElementById('editor').classList.add('open');
+}
+
+// ================================================================
+// RUBRIQUES CRUD
+// ================================================================
+document.getElementById('btn-add-rub').onclick = async () => {
+  const name = await askText({ title: 'Nouvelle rubrique', placeholder: 'Ex: SALLE DE LOC, PROGRAMMATION...', okLabel: 'Cr\u00e9er', subText: 'Une rubrique regroupe des cat\u00e9gories. Pas de t\u00e2che dedans, juste un s\u00e9parateur visuel.' });
+  if (!name) return;
+  const id = newId();
+  const order = Object.keys(state.rubriques).length;
+  await update(ref(db, `${ROOT}/rubriques/${id}`), { name: name.trim(), order, expanded: true });
+};
+
+async function addCategoryInRubrique(rubId) {
+  const name = await askText({ title: 'Nouvelle cat\u00e9gorie', placeholder: 'Ex: Sc\u00e8ne, Electricit\u00e9...', okLabel: 'Cr\u00e9er' });
+  if (!name) return;
+  const id = newId();
+  const order = Object.values(state.categories).filter(c => c.rubriqueId === rubId).length;
+  const usedColors = new Set(Object.values(state.categories).map(c => c.color));
+  const color = PALETTE.find(c => !usedColors.has(c)) || PALETTE[Object.keys(state.categories).length % PALETTE.length];
+  await update(ref(db, `${ROOT}/categories/${id}`), { name: name.trim(), color, order, expanded: true, rubriqueId: rubId });
+}
+
+function openRubriqueEditor(rubId) {
+  state.editingRubrique = rubId;
+  state.editingTask = null;
+  state.editingCategory = null;
+  const rub = state.rubriques[rubId];
+  if (!rub) return;
+  document.getElementById('editor-title').textContent = 'Rubrique';
+  const body = document.getElementById('editor-body');
+  body.innerHTML = `
+    <div class="field">
+      <label class="field-label">Nom</label>
+      <input type="text" id="rub-name" value="${escapeHtml(rub.name || '')}">
+    </div>
+    <div style="font-size:11px;color:var(--text-faint);line-height:1.5;">
+      Une rubrique regroupe des cat\u00e9gories sans porter de t\u00e2che directement. Ses cat\u00e9gories restent ind\u00e9pendantes (couleur, sous-cat\u00e9gories, t\u00e2ches).
+    </div>
+  `;
+  document.getElementById('editor-foot').innerHTML = `
+    <button class="btn btn-danger" id="rub-delete">Supprimer</button>
+    <div style="flex:1"></div>
+    <button class="btn" id="rub-cancel">Annuler</button>
+    <button class="btn btn-primary" id="rub-save">Enregistrer</button>
+  `;
+  document.getElementById('rub-save').onclick = () => {
+    const name = document.getElementById('rub-name').value.trim();
+    if (!name) return;
+    update(ref(db, `${ROOT}/rubriques/${rubId}`), { name });
+    closeEditor();
+  };
+  document.getElementById('rub-cancel').onclick = closeEditor;
+  document.getElementById('rub-delete').onclick = async () => {
+    const catsInside = Object.entries(state.categories).filter(([_, c]) => c.rubriqueId === rubId);
+    const msg = catsInside.length > 0
+      ? `Supprimer "${rub.name}" ? Les ${catsInside.length} cat\u00e9gorie(s) qu'elle contient seront d\u00e9plac\u00e9es vers "Sans rubrique".`
+      : `Supprimer "${rub.name}" ?`;
+    if (!confirm(msg)) return;
+    const updates = {};
+    updates[`rubriques/${rubId}`] = null;
+    catsInside.forEach(([cid]) => { updates[`categories/${cid}/rubriqueId`] = null; });
+    await update(ref(db, ROOT), updates);
+    closeEditor();
+  };
+  document.getElementById('editor').classList.add('open');
+}
+
+// ================================================================
+// FOLD BUTTONS
+// ================================================================
+document.querySelectorAll('.fold-btn').forEach(btn => {
+  btn.onclick = async () => {
+    const mode = btn.dataset.fold;
+    const updates = {};
+    // mode: 'all' = expand all rubriques + cats; 'cats' = expand rubriques, collapse cats; 'rub' = collapse rubriques
+    if (mode === 'all') {
+      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = true);
+      Object.keys(state.categories).forEach(cid => updates[`categories/${cid}/expanded`] = true);
+    } else if (mode === 'cats') {
+      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = true);
+      Object.keys(state.categories).forEach(cid => updates[`categories/${cid}/expanded`] = false);
+    } else if (mode === 'rub') {
+      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = false);
+    }
+    await update(ref(db, ROOT), updates);
+  };
+});
+
+// ================================================================
+// FILTER DROPDOWN (rubriques)
+// ================================================================
+let filterDropdownEl = null;
+document.getElementById('btn-filter-rub').onclick = (e) => {
+  e.stopPropagation();
+  if (filterDropdownEl) {
+    filterDropdownEl.remove();
+    filterDropdownEl = null;
+    return;
+  }
+  const btn = document.getElementById('btn-filter-rub');
+  const r = btn.getBoundingClientRect();
+  filterDropdownEl = document.createElement('div');
+  filterDropdownEl.className = 'filter-dropdown';
+  filterDropdownEl.style.top = (r.bottom + 4) + 'px';
+  filterDropdownEl.style.left = r.left + 'px';
+
+  const rubArr = Object.entries(state.rubriques).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+  const allShown = !state.filterRubriques;
+
+  filterDropdownEl.innerHTML = `
+    <div class="filter-action" data-filter-act="all">Tout afficher</div>
+    <div class="filter-divider"></div>
+    ${rubArr.map(([rid, r]) => {
+      const checked = allShown || (state.filterRubriques && state.filterRubriques.has(rid));
+      return `<div class="filter-item ${checked ? 'checked' : ''}" data-rub-id="${rid}">
+        <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div>${escapeHtml(r.name)}</div>
+      </div>`;
+    }).join('')}
+  `;
+  document.body.appendChild(filterDropdownEl);
+
+  filterDropdownEl.querySelectorAll('.filter-item').forEach(it => {
+    it.onclick = (ev) => {
+      ev.stopPropagation();
+      const rid = it.dataset.rubId;
+      if (!state.filterRubriques) {
+        // start fresh: select only the unchecked one or deselect the clicked
+        state.filterRubriques = new Set(Object.keys(state.rubriques));
+      }
+      if (state.filterRubriques.has(rid)) state.filterRubriques.delete(rid);
+      else state.filterRubriques.add(rid);
+      // If all selected = no filter
+      if (state.filterRubriques.size === Object.keys(state.rubriques).length) state.filterRubriques = null;
+      updateFilterUI();
+      renderAll();
+      // Re-render dropdown
+      filterDropdownEl.remove();
+      filterDropdownEl = null;
+      document.getElementById('btn-filter-rub').click();
+    };
+  });
+  filterDropdownEl.querySelector('[data-filter-act="all"]').onclick = (ev) => {
+    ev.stopPropagation();
+    state.filterRubriques = null;
+    updateFilterUI();
+    renderAll();
+    filterDropdownEl.remove();
+    filterDropdownEl = null;
+  };
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', closeFilterOnOutside, { once: true });
+  }, 0);
+};
+function closeFilterOnOutside(e) {
+  if (filterDropdownEl && !filterDropdownEl.contains(e.target)) {
+    filterDropdownEl.remove();
+    filterDropdownEl = null;
+  }
+}
+function updateFilterUI() {
+  const badge = document.getElementById('filter-rub-badge');
+  const label = document.getElementById('filter-rub-label');
+  if (state.filterRubriques && state.filterRubriques.size < Object.keys(state.rubriques).length) {
+    badge.textContent = state.filterRubriques.size;
+    badge.hidden = false;
+    label.textContent = state.filterRubriques.size === 1 ? '1 rubrique' : state.filterRubriques.size + ' rubriques';
+  } else {
+    badge.hidden = true;
+    label.textContent = 'Rubriques';
+  }
 }
 
 // ================================================================
