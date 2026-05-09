@@ -430,6 +430,31 @@ header {
   border-radius: 6px;
 }
 .filter-action:hover { background: var(--bg-hover); color: var(--text); }
+.filter-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 10px 4px;
+}
+.filter-empty {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+.filter-person-chip {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
 .cat-row {
   height: var(--row-h);
   display: flex;
@@ -1258,7 +1283,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v1.0</div>
+    <div class="auth-sub">Planning · v1.1</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1269,7 +1294,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.0</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.1</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1282,19 +1307,17 @@ header {
       Aujourd'hui
     </button>
 
-    <div class="people-filter" id="people-filter"></div>
-
-    <button class="btn" id="btn-filter-rub" title="Filtrer par rubrique">
+    <button class="btn" id="btn-filters" title="Filtres">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      <span id="filter-rub-label">Rubriques</span>
-      <span class="filter-badge" id="filter-rub-badge" hidden></span>
+      <span id="filters-label">Filtres</span>
+      <span class="filter-badge" id="filters-badge" hidden></span>
     </button>
 
     <div class="header-spacer"></div>
 
-    <button class="btn" id="btn-add-event" title="Nouvel \u00e9v\u00e9nement">
+    <button class="btn" id="btn-add-event" title="Nouvel &#233;v&#233;nement">
       <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 4 22 20 2 20"/></svg>
-      \u00c9v\u00e9nement
+      &#201;v&#233;nement
     </button>
 
     <button class="btn btn-primary" id="btn-add-task">
@@ -1319,27 +1342,15 @@ header {
     <aside id="sidebar">
       <div class="sidebar-head">
         <span class="sidebar-title">Cat&#233;gories</span>
-        <div class="fold-buttons">
-          <button class="fold-btn" data-fold="all" title="Tout d&#233;plier">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/><polyline points="6 9 12 3 18 9" transform="translate(0 12)"/></svg>
-          </button>
-          <button class="fold-btn" data-fold="cats" title="Niveau cat&#233;gories">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-          </button>
-          <button class="fold-btn" data-fold="rub" title="Replier rubriques">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/><polyline points="6 15 12 21 18 15" transform="translate(0 -12)"/></svg>
-          </button>
-        </div>
+        <button class="fold-btn fold-cycle" id="btn-fold-cycle" title="Plier / d&#233;plier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
       </div>
       <div class="sidebar-list" id="cat-list"></div>
       <div class="sidebar-foot">
         <button class="add-cat-btn" id="btn-add-rub">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nouvelle rubrique
-        </button>
-        <button class="add-cat-btn" id="btn-add-cat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nouvelle cat&#233;gorie
         </button>
       </div>
     </aside>
@@ -1354,9 +1365,9 @@ header {
         <div class="now-line" id="now-line"></div>
       </div>
       <div class="empty hidden" id="empty">
-        <div class="empty-title">Pas encore de cat&#233;gorie</div>
-        <div>Cr&#233;e ta premi&#232;re cat&#233;gorie pour commencer</div>
-        <button class="btn btn-primary" id="empty-btn" style="margin-top:16px;pointer-events:auto;">+ Nouvelle cat&#233;gorie</button>
+        <div class="empty-title">Pas encore de rubrique</div>
+        <div>Cr&#233;e ta premi&#232;re rubrique pour commencer</div>
+        <button class="btn btn-primary" id="empty-btn" style="margin-top:16px;pointer-events:auto;">+ Nouvelle rubrique</button>
       </div>
     </div>
   </div>
@@ -1443,8 +1454,10 @@ const state = {
   events: {},
   people: { ...DEFAULT_PEOPLE },
   dayWidth: 40,
-  activeFilter: null,
-  filterRubriques: null,
+  activeFilter: null,    // legacy single user filter (kept for compat)
+  filterPeople: null,    // Set of user ids to show, or null = show all
+  filterRubriques: null, // Set of rubrique IDs, or null = show all
+  hideDone: false,       // hide done tasks?
   rangeStart: null,
   rangeEnd: null,
   editingTask: null,
@@ -1686,7 +1699,7 @@ function renderAll() {
 }
 
 function updateEmpty() {
-  document.getElementById('empty').classList.toggle('hidden', Object.keys(state.categories).length > 0);
+  document.getElementById('empty').classList.toggle('hidden', Object.keys(state.rubriques).length > 0 || Object.keys(state.categories).length > 0);
 }
 
 // --- TIME HEADER ---
@@ -1974,11 +1987,20 @@ function renderLanes() {
 
   const hierarchy = buildHierarchy();
   for (const { rubrique, cats } of hierarchy) {
-    // Rubrique lane (decorative separator, no tasks)
+    // Rubrique lane (separator + click to toggle)
     const rubLane = document.createElement('div');
     rubLane.className = 'lane rub-lane';
     rubLane.dataset.rubId = rubrique.id;
     rubLane.style.width = totalW + 'px';
+    if (!rubrique.virtual) {
+      rubLane.style.pointerEvents = 'auto';
+      rubLane.style.cursor = 'pointer';
+      rubLane.addEventListener('click', (e) => {
+        if (e.target.closest('.task') || e.target.closest('.event-triangle')) return;
+        setLocalExpanded('rub', rubrique.id, rubrique.expanded === false);
+        renderAll();
+      });
+    }
     area.appendChild(rubLane);
 
     if (rubrique.expanded === false) continue;
@@ -1988,8 +2010,25 @@ function renderLanes() {
       const lane = createLane(cat.id, null, { isSummary: hasSubs });
       if (hasSubs) {
         lane.classList.add('cat-summary');
-        // Add summary label and visual bar
         decorateCatSummaryLane(lane, cat, subs);
+        // Click toggle accordéon
+        lane.style.pointerEvents = 'auto';
+        lane.style.cursor = 'pointer';
+        lane.addEventListener('click', (e) => {
+          if (e.target.closest('.task') || e.target.closest('.event-triangle')) return;
+          setLocalExpanded('cat', cat.id, cat.expanded === false);
+          renderAll();
+        });
+        // Double-click creates task in first subcategory
+        lane.addEventListener('dblclick', (e) => {
+          if (e.target.closest('.task') || e.target.closest('.event-triangle')) return;
+          e.stopPropagation();
+          const rect = lane.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const dayI = Math.floor(x / state.dayWidth);
+          const startD = addDays(state.rangeStart, dayI);
+          if (subs[0]) createTaskAt(cat.id, subs[0].id, startD);
+        });
       } else {
         lane.classList.add('cat-only');
       }
@@ -2164,8 +2203,13 @@ function renderOneTask(lane, taskId, task, cat, conflicts) {
   const endI = dayIndex(end);
   if (endI < 0 || startI > diffDays(state.rangeStart, state.rangeEnd)) return;
 
-  // Filter by person: hide if not assigned to active filter user
-  if (state.activeFilter && !(task.assignees || []).includes(state.activeFilter)) return;
+  // Filter by person: hide if none of the assignees match
+  if (state.filterPeople && state.filterPeople.size > 0) {
+    const matches = (task.assignees || []).some(uid => state.filterPeople.has(uid));
+    if (!matches) return;
+  }
+  // Hide done tasks if requested
+  if (state.hideDone && task.status === 'done') return;
 
   const node = document.createElement('div');
   let cls = 'task';
@@ -2408,14 +2452,7 @@ function startDrag(e, taskId, node) {
 // ================================================================
 // CATEGORIES CRUD
 // ================================================================
-document.getElementById('btn-add-cat').onclick = async () => {
-  const name = await askText({ title: 'Nouvelle cat\u00e9gorie', placeholder: 'Ex: Studio podcast', okLabel: 'Cr\u00e9er' });
-  if (!name) return;
-  const id = newId();
-  const order = Object.keys(state.categories).length;
-  const color = PALETTE[order % PALETTE.length];
-  saveCategory(id, { name: name.trim(), color, order, expanded: true });
-};
+// (creating a category is done via the "+" button in each rubrique row)
 
 async function addSubcategory(catId) {
   const name = await askText({ title: 'Nouvelle sous-cat\u00e9gorie', placeholder: 'Ex: Mairie d\'Aouste', okLabel: 'Cr\u00e9er' });
@@ -2611,83 +2648,150 @@ function openRubriqueEditor(rubId) {
 // ================================================================
 // FOLD BUTTONS
 // ================================================================
-document.querySelectorAll('.fold-btn').forEach(btn => {
-  btn.onclick = () => {
-    const mode = btn.dataset.fold;
-    if (mode === 'all') {
-      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
-      Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, true));
-    } else if (mode === 'cats') {
-      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
-      Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, false));
-    } else if (mode === 'rub') {
-      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, false));
-    }
-    renderAll();
-  };
-});
+// FOLD BUTTON (cycle 3 states: all / cats / rub)
+let foldState = 0; // 0=all expanded, 1=rubriques expanded but cats collapsed, 2=rubriques collapsed
+function applyFoldState() {
+  if (foldState === 0) {
+    Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
+    Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, true));
+  } else if (foldState === 1) {
+    Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
+    Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, false));
+  } else {
+    Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, false));
+  }
+  updateFoldButton();
+  renderAll();
+}
+function updateFoldButton() {
+  const btn = document.getElementById('btn-fold-cycle');
+  if (!btn) return;
+  const titles = ['Tout d\u00e9pli\u00e9 (cliquer pour replier les cat\u00e9gories)', 'Cat\u00e9gories repli\u00e9es (cliquer pour replier les rubriques)', 'Tout repli\u00e9 (cliquer pour tout d\u00e9plier)'];
+  btn.title = titles[foldState];
+  // SVG icon swap
+  const icons = [
+    // 0 = all expanded → show "compress" icon
+    '<polyline points="6 9 12 15 18 9"/><polyline points="6 15 12 9 18 15" transform="translate(0 6)"/>',
+    // 1 = cats collapsed → show "list" icon
+    '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>',
+    // 2 = all collapsed → show "expand" icon
+    '<polyline points="6 15 12 9 18 15"/><polyline points="6 9 12 15 18 9" transform="translate(0 6)"/>'
+  ];
+  btn.querySelector('svg').innerHTML = icons[foldState];
+}
+document.getElementById('btn-fold-cycle').onclick = () => {
+  foldState = (foldState + 1) % 3;
+  applyFoldState();
+};
 
 // ================================================================
-// FILTER DROPDOWN (rubriques)
+// FILTER DROPDOWN (unified: people + rubriques + display options)
 // ================================================================
 let filterDropdownEl = null;
-document.getElementById('btn-filter-rub').onclick = (e) => {
+
+function renderPeopleFilter() {
+  // Legacy stub: no longer renders chips, kept for compat with other callers
+  // (the user chip is updated via updateUserChip, filters are in the dropdown)
+}
+
+document.getElementById('btn-filters').onclick = (e) => {
   e.stopPropagation();
   if (filterDropdownEl) {
     filterDropdownEl.remove();
     filterDropdownEl = null;
     return;
   }
-  const btn = document.getElementById('btn-filter-rub');
+  const btn = document.getElementById('btn-filters');
   const r = btn.getBoundingClientRect();
   filterDropdownEl = document.createElement('div');
   filterDropdownEl.className = 'filter-dropdown';
   filterDropdownEl.style.top = (r.bottom + 4) + 'px';
   filterDropdownEl.style.left = r.left + 'px';
 
+  const peopleArr = Object.entries(state.people).sort((a,b) => (a[1].order||0) - (b[1].order||0));
   const rubArr = Object.entries(state.rubriques).sort((a,b) => (a[1].order||0) - (b[1].order||0));
-  const allShown = !state.filterRubriques;
+
+  const personHtml = peopleArr.map(([uid, p]) => {
+    const checked = !state.filterPeople || state.filterPeople.has(uid);
+    return `<div class="filter-item filter-person ${checked ? 'checked' : ''}" data-uid="${uid}">
+      <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="filter-person-chip" style="background:${p.color}">${escapeHtml(p.initial)}</div>
+      <div>${escapeHtml(p.name)}</div>
+    </div>`;
+  }).join('');
+
+  const rubHtml = rubArr.map(([rid, r]) => {
+    const checked = !state.filterRubriques || state.filterRubriques.has(rid);
+    return `<div class="filter-item filter-rub ${checked ? 'checked' : ''}" data-rub-id="${rid}">
+      <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>${escapeHtml(r.name)}</div>
+    </div>`;
+  }).join('');
 
   filterDropdownEl.innerHTML = `
-    <div class="filter-action" data-filter-act="all">Tout afficher</div>
+    <div class="filter-section-title">Personnes</div>
+    ${personHtml || '<div class="filter-empty">Aucune personne</div>'}
     <div class="filter-divider"></div>
-    ${rubArr.map(([rid, r]) => {
-      const checked = allShown || (state.filterRubriques && state.filterRubriques.has(rid));
-      return `<div class="filter-item ${checked ? 'checked' : ''}" data-rub-id="${rid}">
-        <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div>${escapeHtml(r.name)}</div>
-      </div>`;
-    }).join('')}
+    <div class="filter-section-title">Rubriques</div>
+    ${rubHtml || '<div class="filter-empty">Aucune rubrique</div>'}
+    <div class="filter-divider"></div>
+    <div class="filter-section-title">Affichage</div>
+    <div class="filter-item filter-toggle ${state.hideDone ? 'checked' : ''}" data-toggle="hideDone">
+      <div class="filter-checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>Masquer les t&#226;ches termin&#233;es</div>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-action" data-filter-act="reset">R&#233;initialiser tous les filtres</div>
   `;
   document.body.appendChild(filterDropdownEl);
 
-  filterDropdownEl.querySelectorAll('.filter-item').forEach(it => {
+  // Person filter click
+  filterDropdownEl.querySelectorAll('.filter-person').forEach(it => {
+    it.onclick = (ev) => {
+      ev.stopPropagation();
+      const uid = it.dataset.uid;
+      const allUids = peopleArr.map(([id]) => id);
+      if (!state.filterPeople) state.filterPeople = new Set(allUids);
+      if (state.filterPeople.has(uid)) state.filterPeople.delete(uid);
+      else state.filterPeople.add(uid);
+      if (state.filterPeople.size === allUids.length) state.filterPeople = null;
+      it.classList.toggle('checked');
+      updateFilterUI();
+      renderTasks();
+    };
+  });
+  // Rubrique filter click
+  filterDropdownEl.querySelectorAll('.filter-rub').forEach(it => {
     it.onclick = (ev) => {
       ev.stopPropagation();
       const rid = it.dataset.rubId;
-      if (!state.filterRubriques) {
-        // start fresh: select only the unchecked one or deselect the clicked
-        state.filterRubriques = new Set(Object.keys(state.rubriques));
-      }
+      const allRids = rubArr.map(([id]) => id);
+      if (!state.filterRubriques) state.filterRubriques = new Set(allRids);
       if (state.filterRubriques.has(rid)) state.filterRubriques.delete(rid);
       else state.filterRubriques.add(rid);
-      // If all selected = no filter
-      if (state.filterRubriques.size === Object.keys(state.rubriques).length) state.filterRubriques = null;
+      if (state.filterRubriques.size === allRids.length) state.filterRubriques = null;
+      it.classList.toggle('checked');
       updateFilterUI();
       renderAll();
-      // Re-render dropdown
-      filterDropdownEl.remove();
-      filterDropdownEl = null;
-      document.getElementById('btn-filter-rub').click();
     };
   });
-  filterDropdownEl.querySelector('[data-filter-act="all"]').onclick = (ev) => {
+  // Toggle hideDone
+  filterDropdownEl.querySelector('[data-toggle="hideDone"]').onclick = (ev) => {
     ev.stopPropagation();
+    state.hideDone = !state.hideDone;
+    ev.currentTarget.classList.toggle('checked');
+    updateFilterUI();
+    renderTasks();
+  };
+  // Reset
+  filterDropdownEl.querySelector('[data-filter-act="reset"]').onclick = (ev) => {
+    ev.stopPropagation();
+    state.filterPeople = null;
     state.filterRubriques = null;
+    state.hideDone = false;
     updateFilterUI();
     renderAll();
-    filterDropdownEl.remove();
-    filterDropdownEl = null;
+    if (filterDropdownEl) { filterDropdownEl.remove(); filterDropdownEl = null; }
   };
 
   // Close on outside click
@@ -2702,15 +2806,19 @@ function closeFilterOnOutside(e) {
   }
 }
 function updateFilterUI() {
-  const badge = document.getElementById('filter-rub-badge');
-  const label = document.getElementById('filter-rub-label');
-  if (state.filterRubriques && state.filterRubriques.size < Object.keys(state.rubriques).length) {
-    badge.textContent = state.filterRubriques.size;
+  const badge = document.getElementById('filters-badge');
+  const label = document.getElementById('filters-label');
+  let count = 0;
+  if (state.filterPeople && state.filterPeople.size < Object.keys(state.people).length) count++;
+  if (state.filterRubriques && state.filterRubriques.size < Object.keys(state.rubriques).length) count++;
+  if (state.hideDone) count++;
+  if (count > 0) {
+    badge.textContent = count;
     badge.hidden = false;
-    label.textContent = state.filterRubriques.size === 1 ? '1 rubrique' : state.filterRubriques.size + ' rubriques';
+    label.textContent = count === 1 ? '1 filtre' : count + ' filtres';
   } else {
     badge.hidden = true;
-    label.textContent = 'Rubriques';
+    label.textContent = 'Filtres';
   }
 }
 
@@ -3077,25 +3185,6 @@ document.getElementById('btn-today').onclick = () => {
   wrap.scrollTo({ left: x - wrap.clientWidth / 3, behavior: 'smooth' });
 };
 
-function renderPeopleFilter() {
-  const filter = document.getElementById('people-filter');
-  filter.innerHTML = '';
-  for (const [uid, p] of Object.entries(state.people)) {
-    const chip = document.createElement('div');
-    chip.className = 'people-chip';
-    chip.style.background = p.color;
-    chip.textContent = p.initial;
-    chip.title = p.name;
-    if (state.activeFilter && state.activeFilter !== uid) chip.classList.add('dimmed');
-    chip.onclick = () => {
-      state.activeFilter = state.activeFilter === uid ? null : uid;
-      renderPeopleFilter();
-      renderTasks();
-    };
-    filter.appendChild(chip);
-  }
-}
-
 // ================================================================
 // HELPERS
 // ================================================================
@@ -3147,7 +3236,7 @@ _sb.addEventListener('scroll', () => {
 });
 
 // Empty state CTA
-document.getElementById('empty-btn').onclick = () => document.getElementById('btn-add-cat').click();
+document.getElementById('empty-btn').onclick = () => document.getElementById('btn-add-rub').click();
 </script>
 </body>
 </html>
