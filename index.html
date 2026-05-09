@@ -740,6 +740,87 @@ header {
   z-index: 500;
 }
 #status.show { transform: translateX(-50%) translateY(0); }
+
+/* === CONNECTION DOT === */
+.conn-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #555;
+  position: relative;
+  margin-left: 4px;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.conn-dot.online {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+.conn-dot.online span {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(74, 222, 128, 0.4);
+  animation: pulse 2s ease-out infinite;
+}
+.conn-dot.offline {
+  background: #ef4444;
+}
+@keyframes pulse {
+  0% { transform: scale(0.7); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* === MODAL DIALOG === */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+.modal-bg.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 380px;
+  max-width: 90vw;
+  box-shadow: var(--shadow);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.18s;
+}
+.modal-bg.open .modal { transform: translateY(0) scale(1); }
+.modal-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.modal-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.modal-input:focus { border-color: var(--accent); outline: none; }
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 </style>
 </head>
 <body>
@@ -748,7 +829,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.1</div>
+    <div class="auth-sub">Planning · v0.2</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -784,6 +865,8 @@ header {
     <button class="btn btn-icon" id="btn-logout" title="D&#233;connexion">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
+
+    <div class="conn-dot" id="conn-dot" title="Connexion..."><span></span></div>
   </header>
 
   <div class="main-area">
@@ -808,6 +891,7 @@ header {
       <div class="empty hidden" id="empty">
         <div class="empty-title">Pas encore de cat&#233;gorie</div>
         <div>Cr&#233;e ta premi&#232;re cat&#233;gorie pour commencer</div>
+        <button class="btn btn-primary" id="empty-btn" style="margin-top:16px;pointer-events:auto;">+ Nouvelle cat&#233;gorie</button>
       </div>
     </div>
   </div>
@@ -826,6 +910,19 @@ header {
 </div>
 
 <div id="status"></div>
+
+<!-- MODAL DIALOG (input texte simple) -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Titre</div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <input type="text" class="modal-input" id="modal-input" placeholder="">
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Annuler</button>
+      <button class="btn btn-primary" id="modal-ok">Cr&#233;er</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -980,6 +1077,17 @@ onAuthStateChanged(auth, (user) => {
 // FIREBASE SYNC
 // ================================================================
 function initSync() {
+  // Connection indicator
+  onValue(ref(db, '.info/connected'), snap => {
+    const dot = document.getElementById('conn-dot');
+    const online = snap.val() === true;
+    dot.classList.toggle('online', online);
+    dot.classList.toggle('offline', !online);
+    dot.title = online
+      ? 'Connect\u00e9 \u00e0 Firebase' + (auth.currentUser ? ' \u2014 ' + auth.currentUser.email : '')
+      : 'Hors ligne \u2014 modifications mises en file';
+  });
+
   // Init meta/people if missing
   get(ref(db, `${ROOT}/meta/people`)).then(snap => {
     if (!snap.exists()) {
@@ -1032,6 +1140,7 @@ function newId() {
 // RENDER
 // ================================================================
 function renderAll() {
+  computeRange(); // toujours recalculer la plage avant de render (s\u00e9curit\u00e9 quand state vide)
   renderTimeHeader();
   renderSidebar();
   renderLanes();
@@ -1288,6 +1397,8 @@ function renderOneTask(lane, taskId, task, cat) {
 // --- NOW LINE ---
 function renderNowLine() {
   const line = document.getElementById('now-line');
+  if (!state.rangeStart) { line.style.display = 'none'; return; }
+  line.style.display = '';
   const today = new Date();
   const x = dayX(today) + state.dayWidth / 2;
   line.style.left = x + 'px';
@@ -1360,8 +1471,8 @@ function startDrag(e, taskId, node) {
 // ================================================================
 // CATEGORIES CRUD
 // ================================================================
-document.getElementById('btn-add-cat').onclick = () => {
-  const name = prompt('Nom de la cat\u00e9gorie ?');
+document.getElementById('btn-add-cat').onclick = async () => {
+  const name = await askText({ title: 'Nouvelle cat\u00e9gorie', placeholder: 'Ex: Studio podcast', okLabel: 'Cr\u00e9er' });
   if (!name) return;
   const id = newId();
   const order = Object.keys(state.categories).length;
@@ -1369,8 +1480,8 @@ document.getElementById('btn-add-cat').onclick = () => {
   saveCategory(id, { name: name.trim(), color, order, expanded: true });
 };
 
-function addSubcategory(catId) {
-  const name = prompt('Nom de la sous-cat\u00e9gorie ?');
+async function addSubcategory(catId) {
+  const name = await askText({ title: 'Nouvelle sous-cat\u00e9gorie', placeholder: 'Ex: Mairie d\'Aouste', okLabel: 'Cr\u00e9er' });
   if (!name) return;
   const cat = state.categories[catId];
   const order = cat.subcategories ? Object.keys(cat.subcategories).length : 0;
@@ -1378,16 +1489,14 @@ function addSubcategory(catId) {
   saveCategory(catId, { [`subcategories/${subId}`]: { name: name.trim(), order } });
 }
 
-function editSubcategoryName(catId, subId, current) {
-  const n = prompt('Renommer :', current);
-  if (n === null) return;
-  if (!n.trim()) return;
+async function editSubcategoryName(catId, subId, current) {
+  const n = await askText({ title: 'Renommer la sous-cat\u00e9gorie', initial: current, okLabel: 'Enregistrer' });
+  if (!n) return;
   update(ref(db, `${ROOT}/categories/${catId}/subcategories/${subId}`), { name: n.trim() });
 }
 
 function confirmDeleteSubcategory(catId, subId) {
   if (!confirm('Supprimer cette sous-cat\u00e9gorie ? Les t\u00e2ches qu\'elle contient seront d\u00e9plac\u00e9es vers la cat\u00e9gorie parente.')) return;
-  // Move tasks
   const updates = {};
   for (const [tid, t] of Object.entries(state.tasks)) {
     if (t.categoryId === catId && t.subcategoryId === subId) {
@@ -1396,6 +1505,42 @@ function confirmDeleteSubcategory(catId, subId) {
   }
   updates[`categories/${catId}/subcategories/${subId}`] = null;
   update(ref(db, ROOT), updates);
+}
+
+// --- Modal askText utility ---
+function askText({ title = 'Saisir', placeholder = '', initial = '', okLabel = 'OK', subText = '' } = {}) {
+  return new Promise((resolve) => {
+    const bg = document.getElementById('modal-bg');
+    const input = document.getElementById('modal-input');
+    const ok = document.getElementById('modal-ok');
+    const cancel = document.getElementById('modal-cancel');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-sub').textContent = subText;
+    document.getElementById('modal-sub').style.display = subText ? '' : 'none';
+    ok.textContent = okLabel;
+    input.value = initial;
+    input.placeholder = placeholder;
+    bg.classList.add('open');
+    setTimeout(() => input.focus(), 50);
+    const cleanup = (val) => {
+      bg.classList.remove('open');
+      ok.onclick = null;
+      cancel.onclick = null;
+      input.onkeydown = null;
+      bg.onclick = null;
+      resolve(val);
+    };
+    ok.onclick = () => {
+      const v = input.value.trim();
+      cleanup(v || null);
+    };
+    cancel.onclick = () => cleanup(null);
+    input.onkeydown = (e) => {
+      if (e.key === 'Enter') ok.click();
+      else if (e.key === 'Escape') cancel.click();
+    };
+    bg.onclick = (e) => { if (e.target === bg) cancel.click(); };
+  });
 }
 
 // ================================================================
@@ -1593,6 +1738,7 @@ document.querySelectorAll('.zoom-btn').forEach(b => {
 });
 
 document.getElementById('btn-today').onclick = () => {
+  if (!state.rangeStart) return;
   const wrap = document.getElementById('timeline-wrap');
   const today = new Date();
   const x = dayX(today);
@@ -1667,6 +1813,9 @@ _sb.addEventListener('scroll', () => {
   _tw.scrollTop = _sb.scrollTop;
   requestAnimationFrame(() => { _scrollLock = false; });
 });
+
+// Empty state CTA
+document.getElementById('empty-btn').onclick = () => document.getElementById('btn-add-cat').click();
 </script>
 </body>
 </html>
