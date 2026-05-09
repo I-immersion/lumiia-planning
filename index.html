@@ -667,6 +667,60 @@ header {
   box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
 }
 
+/* === SETTINGS — PERSONS === */
+.person-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 50px auto auto;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.person-row:last-of-type { border-bottom: none; }
+.person-chip {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.person-name, .person-init {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+.person-init {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.person-color-picker {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 6px;
+  z-index: 50;
+  box-shadow: var(--shadow);
+  width: 220px;
+}
+.person-color-picker .color-swatch {
+  width: 28px;
+  height: 28px;
+}
+
 .editor-foot {
   padding: 16px 24px;
   border-top: 1px solid var(--border);
@@ -829,7 +883,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.2</div>
+    <div class="auth-sub">Planning · v0.3</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -840,7 +894,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.3</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -860,6 +914,10 @@ header {
     <button class="btn btn-primary" id="btn-add-task">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nouvelle t&#226;che
+    </button>
+
+    <button class="btn btn-icon" id="btn-settings" title="R&#233;glages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
 
     <button class="btn btn-icon" id="btn-logout" title="D&#233;connexion">
@@ -1591,6 +1649,128 @@ function openCategoryEditor(catId) {
   };
   document.getElementById('editor').classList.add('open');
 }
+
+// ================================================================
+// SETTINGS — PEOPLE MANAGEMENT
+// ================================================================
+function openSettingsEditor() {
+  state.editingTask = null;
+  state.editingCategory = null;
+  document.getElementById('editor-title').textContent = 'Personnes';
+  renderSettingsBody();
+  document.getElementById('editor-foot').innerHTML = `
+    <div style="flex:1"></div>
+    <button class="btn btn-primary" id="settings-close">Termin&#233;</button>
+  `;
+  document.getElementById('settings-close').onclick = closeEditor;
+  document.getElementById('editor').classList.add('open');
+}
+
+function renderSettingsBody() {
+  const body = document.getElementById('editor-body');
+  const peopleEntries = Object.entries(state.people || {}).sort((a,b) => (a[1].order || 0) - (b[1].order || 0));
+  body.innerHTML = `
+    <div class="field">
+      <label class="field-label">Personnes assignables aux t\u00e2ches</label>
+      <div id="people-list">
+        ${peopleEntries.map(([uid, p]) => personRowHtml(uid, p)).join('')}
+      </div>
+      <button class="btn" id="btn-add-person" style="margin-top:12px;width:100%;justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter une personne
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--text-faint);margin-top:16px;line-height:1.5;">
+      Les personnes ajout\u00e9es ici ne sont que des labels assignables. Elles n'ont pas besoin de compte pour appara\u00eetre dans le planning. Pour donner un acc\u00e8s lecture/\u00e9criture (cr\u00e9er/d\u00e9placer des t\u00e2ches), il faut un compte Firebase Auth (g\u00e9r\u00e9 par Emmanuel).
+    </div>
+  `;
+  // Bind events
+  body.querySelectorAll('[data-person-row]').forEach(row => bindPersonRow(row));
+  document.getElementById('btn-add-person').onclick = async () => {
+    const name = await askText({ title: 'Nouvelle personne', placeholder: 'Pr\u00e9nom', okLabel: 'Ajouter' });
+    if (!name) return;
+    const id = newId();
+    const order = peopleEntries.length;
+    const initial = name.trim().slice(0, 2).toUpperCase();
+    // Pick an unused color
+    const usedColors = new Set(peopleEntries.map(([_,p]) => p.color));
+    const color = PALETTE.find(c => !usedColors.has(c)) || PALETTE[order % PALETTE.length];
+    await update(ref(db, `${ROOT}/meta/people/${id}`), { name: name.trim(), initial, color, order });
+    renderSettingsBody();
+  };
+}
+
+function personRowHtml(uid, p) {
+  return `
+    <div class="person-row" data-person-row data-uid="${uid}">
+      <div class="person-chip" style="background:${p.color}">${escapeHtml(p.initial)}</div>
+      <input type="text" class="person-name" value="${escapeHtml(p.name)}" placeholder="Nom">
+      <input type="text" class="person-init" value="${escapeHtml(p.initial)}" maxlength="3" placeholder="XX">
+      <button class="cat-mini-btn person-color-btn" title="Couleur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+      </button>
+      <button class="cat-mini-btn person-del" title="Supprimer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+      <div class="person-color-picker" style="display:none">
+        ${PALETTE.map(c => `<div class="color-swatch ${c === p.color ? 'active' : ''}" data-color="${c}" style="background:${c}"></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function bindPersonRow(row) {
+  const uid = row.dataset.uid;
+  const nameInput = row.querySelector('.person-name');
+  const initInput = row.querySelector('.person-init');
+  const colorBtn = row.querySelector('.person-color-btn');
+  const picker = row.querySelector('.person-color-picker');
+  const delBtn = row.querySelector('.person-del');
+  const chip = row.querySelector('.person-chip');
+
+  const save = () => {
+    const name = nameInput.value.trim() || 'Sans nom';
+    const initial = (initInput.value.trim() || name.slice(0,2)).toUpperCase().slice(0,3);
+    update(ref(db, `${ROOT}/meta/people/${uid}`), { name, initial });
+    chip.textContent = initial;
+  };
+  nameInput.addEventListener('blur', save);
+  initInput.addEventListener('blur', save);
+  initInput.addEventListener('input', () => { chip.textContent = initInput.value.toUpperCase().slice(0,3); });
+
+  colorBtn.onclick = () => {
+    picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+  };
+  picker.querySelectorAll('.color-swatch').forEach(s => {
+    s.onclick = () => {
+      const newColor = s.dataset.color;
+      picker.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+      chip.style.background = newColor;
+      update(ref(db, `${ROOT}/meta/people/${uid}`), { color: newColor });
+      picker.style.display = 'none';
+    };
+  });
+
+  delBtn.onclick = async () => {
+    const p = state.people[uid];
+    if (!p) return;
+    if (!confirm(`Supprimer "${p.name}" ? Cette personne sera retir\u00e9e des t\u00e2ches o\u00f9 elle est assign\u00e9e.`)) return;
+    // Build update: remove person + unassign from tasks
+    const updates = {};
+    updates[`meta/people/${uid}`] = null;
+    for (const [tid, t] of Object.entries(state.tasks)) {
+      if ((t.assignees || []).includes(uid)) {
+        const newAssignees = t.assignees.filter(x => x !== uid);
+        updates[`tasks/${tid}/assignees`] = newAssignees.length > 0 ? newAssignees : null;
+      }
+    }
+    await update(ref(db, ROOT), updates);
+    renderSettingsBody();
+  };
+}
+
+document.getElementById('btn-settings').onclick = openSettingsEditor;
 
 // ================================================================
 // EDITOR — TASK
