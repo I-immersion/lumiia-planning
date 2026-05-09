@@ -348,9 +348,10 @@ header {
 
 .lane.rub-lane {
   height: 36px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-  border-bottom: 1px solid var(--border);
-  border-top: 2px solid var(--border-strong);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border-bottom: 1px solid var(--border-strong);
+  border-top: 3px solid var(--border-strong);
   position: relative;
   pointer-events: none;
 }
@@ -360,7 +361,8 @@ header {
   top: 50%;
   left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, var(--border-strong) 0%, transparent 80%);
+  background: var(--border-strong);
+  opacity: 0.6;
 }
 
 /* === FILTER DROPDOWN === */
@@ -594,7 +596,46 @@ header {
   border-bottom: 1px solid var(--border);
   position: relative;
 }
-.lane.subcat { background: rgba(0,0,0,0.15); }
+.lane.subcat { background: rgba(0,0,0,0.18); }
+
+/* Catégorie en mode résumé (a des sous-cats) — non droppable, lecture seule */
+.lane.cat-summary {
+  background:
+    repeating-linear-gradient(135deg, transparent 0px, transparent 6px, rgba(255,255,255,0.025) 6px, rgba(255,255,255,0.025) 12px),
+    rgba(255,255,255,0.015);
+  pointer-events: none;
+}
+.cat-summary-label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  background: rgba(10, 10, 13, 0.7);
+  padding: 3px 8px;
+  border-radius: 5px;
+  z-index: 5;
+}
+.cat-summary-bar {
+  position: absolute;
+  height: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Catégorie sans sous-cats → comportement normal mais fond légèrement marqué */
+.lane.cat-only {
+  background: rgba(255,255,255,0.02);
+}
+
 .day-bg {
   flex-shrink: 0;
   border-right: 1px solid var(--border);
@@ -602,6 +643,41 @@ header {
 }
 .day-bg.weekend { background: var(--weekend); }
 .lane:hover .day-bg.hover-target { background: var(--accent-soft); }
+
+/* === TASK CONFLICT === */
+.task.has-conflict {
+  outline: 2px solid #ef4444;
+  outline-offset: -1px;
+  animation: conflict-pulse 2s ease-in-out infinite;
+}
+@keyframes conflict-pulse {
+  0%, 100% { outline-color: rgba(239, 68, 68, 0.7); }
+  50% { outline-color: rgba(239, 68, 68, 1); }
+}
+.task-conflict-icon {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+.task-conflict-icon svg { width: 8px; height: 8px; color: white; }
+
+/* Conflict warning in editor */
+.conflict-warning {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.conflict-warning strong { color: #ef4444; }
 
 /* === TASK CARDS === */
 .task {
@@ -1108,7 +1184,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.6</div>
+    <div class="auth-sub">Planning · v0.7</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1119,7 +1195,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.6</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.7</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1778,7 +1854,17 @@ function renderLanes() {
     if (rubrique.expanded === false) continue;
 
     for (const { cat, subs } of cats) {
-      area.appendChild(createLane(cat.id, null));
+      const hasSubs = subs.length > 0;
+      const lane = createLane(cat.id, null, { isSummary: hasSubs });
+      if (hasSubs) {
+        lane.classList.add('cat-summary');
+        // Add summary label and visual bar
+        decorateCatSummaryLane(lane, cat, subs);
+      } else {
+        lane.classList.add('cat-only');
+      }
+      area.appendChild(lane);
+
       if (cat.expanded === false) continue;
       for (const sub of subs) {
         const sLane = createLane(cat.id, sub.id);
@@ -1789,11 +1875,49 @@ function renderLanes() {
   }
 }
 
-function createLane(catId, subId) {
+function decorateCatSummaryLane(lane, cat, subs) {
+  // Find tasks that belong to any subcat of this cat
+  const subIds = new Set(subs.map(s => s.id));
+  const subTasks = Object.values(state.tasks).filter(t => t.categoryId === cat.id && t.subcategoryId && subIds.has(t.subcategoryId));
+  if (subTasks.length === 0) {
+    // Lane reste vide, juste fond strié (déjà via CSS)
+    return;
+  }
+  // Compute time span
+  let minStart = null, maxEnd = null;
+  subTasks.forEach(t => {
+    const s = parseISO(t.startDate);
+    const e = parseISO(t.endDate);
+    if (!minStart || s < minStart) minStart = s;
+    if (!maxEnd || e > maxEnd) maxEnd = e;
+  });
+  if (minStart && maxEnd) {
+    const startI = dayIndex(minStart);
+    const endI = dayIndex(maxEnd);
+    if (endI >= 0 && startI <= diffDays(state.rangeStart, state.rangeEnd)) {
+      const bar = document.createElement('div');
+      bar.className = 'cat-summary-bar';
+      bar.style.left = (startI * state.dayWidth + 2) + 'px';
+      bar.style.width = ((endI - startI + 1) * state.dayWidth - 4) + 'px';
+      bar.style.background = cat.color || PALETTE[0];
+      lane.appendChild(bar);
+    }
+  }
+  // Counter label
+  const label = document.createElement('div');
+  label.className = 'cat-summary-label';
+  const doneCount = subTasks.filter(t => t.status === 'done').length;
+  label.textContent = subTasks.length === 1 ? '1 t\u00e2che' : (subTasks.length + ' t\u00e2ches');
+  if (doneCount > 0) label.textContent += ' \u2022 ' + doneCount + ' \u2713';
+  lane.appendChild(label);
+}
+
+function createLane(catId, subId, opts = {}) {
   const lane = document.createElement('div');
   lane.className = 'lane';
   lane.dataset.catId = catId;
   if (subId) lane.dataset.subId = subId;
+  if (opts.isSummary) lane.dataset.summary = '1';
   const nDays = diffDays(state.rangeStart, state.rangeEnd);
   for (let i = 0; i < nDays; i++) {
     const d = addDays(state.rangeStart, i);
@@ -1804,26 +1928,33 @@ function createLane(catId, subId) {
     cell.dataset.dayIdx = i;
     lane.appendChild(cell);
   }
-  // Click to create task
-  lane.addEventListener('dblclick', (e) => {
-    if (e.target.closest('.task')) return;
-    const rect = lane.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const dayI = Math.floor(x / state.dayWidth);
-    const startD = addDays(state.rangeStart, dayI);
-    createTaskAt(catId, subId, startD);
-  });
+  // Click to create task — only on non-summary lanes
+  if (!opts.isSummary) {
+    lane.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.task')) return;
+      const rect = lane.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const dayI = Math.floor(x / state.dayWidth);
+      const startD = addDays(state.rangeStart, dayI);
+      createTaskAt(catId, subId, startD);
+    });
+  }
   return lane;
 }
 
 // --- TASKS ---
 function renderTasks() {
-  // Find lanes by cat/sub combo
+  // Map lanes by cat/sub combo
   const laneMap = new Map();
   document.querySelectorAll('.lane').forEach(l => {
-    const key = `${l.dataset.catId}|${l.dataset.subId || ''}`;
-    laneMap.set(key, l);
+    if (l.dataset.catId) {
+      const key = `${l.dataset.catId}|${l.dataset.subId || ''}`;
+      laneMap.set(key, l);
+    }
   });
+
+  // Pre-compute conflicts per task ID
+  const conflictsByTask = computeAllConflicts();
 
   // Clear existing tasks
   document.querySelectorAll('.task').forEach(n => n.remove());
@@ -1831,25 +1962,59 @@ function renderTasks() {
   for (const [taskId, task] of Object.entries(state.tasks)) {
     if (!state.categories[task.categoryId]) continue;
     const cat = state.categories[task.categoryId];
-    if (cat.expanded === false && task.subcategoryId) {
-      // skip subcat tasks when collapsed (or render in main lane)
-      // Better: render in main lane when collapsed
-      const key = `${task.categoryId}|`;
-      const lane = laneMap.get(key);
-      if (lane) renderOneTask(lane, taskId, task, cat);
+    const hasSubs = cat.subcategories && Object.keys(cat.subcategories).length > 0;
+
+    // If cat has sub-cats AND task has no subcategoryId, do NOT render in cat lane (cat is summary)
+    if (hasSubs && !task.subcategoryId) {
+      // Show this task in the first available subcat OR as a warning? We chose: in the cat-only lane fallback
+      // But there's no cat-only lane when cat has subs. So skip rendering here, but flag in conflicts.
+      // (Tasks that need migration: were created at cat level before subs existed)
       continue;
     }
+
+    if (cat.expanded === false && task.subcategoryId) {
+      // Cat collapsed: show subcat tasks aggregated... actually skip rendering
+      continue;
+    }
+
     const key = `${task.categoryId}|${task.subcategoryId || ''}`;
     let lane = laneMap.get(key);
     if (!lane && task.subcategoryId) {
-      // Sub deleted — fall back to main lane
+      // Sub deleted — fall back to main lane (only if cat has no other subs)
       lane = laneMap.get(`${task.categoryId}|`);
     }
-    if (lane) renderOneTask(lane, taskId, task, cat);
+    if (lane) renderOneTask(lane, taskId, task, cat, conflictsByTask[taskId] || []);
   }
 }
 
-function renderOneTask(lane, taskId, task, cat) {
+// --- CONFLICT DETECTION ---
+function computeAllConflicts() {
+  const result = {};
+  const tasks = Object.entries(state.tasks);
+  for (let i = 0; i < tasks.length; i++) {
+    const [idA, a] = tasks[i];
+    if (!a.assignees || a.assignees.length === 0 || a.status === 'done') continue;
+    const aStart = parseISO(a.startDate).getTime();
+    const aEnd = parseISO(a.endDate).getTime();
+    for (let j = i + 1; j < tasks.length; j++) {
+      const [idB, b] = tasks[j];
+      if (!b.assignees || b.assignees.length === 0 || b.status === 'done') continue;
+      const bStart = parseISO(b.startDate).getTime();
+      const bEnd = parseISO(b.endDate).getTime();
+      if (bEnd < aStart || bStart > aEnd) continue;
+      const shared = a.assignees.filter(p => b.assignees.includes(p));
+      if (shared.length > 0) {
+        result[idA] = result[idA] || [];
+        result[idB] = result[idB] || [];
+        result[idA].push({ otherId: idB, otherTask: b, people: shared });
+        result[idB].push({ otherId: idA, otherTask: a, people: shared });
+      }
+    }
+  }
+  return result;
+}
+
+function renderOneTask(lane, taskId, task, cat, conflicts) {
   const start = parseISO(task.startDate);
   const end = parseISO(task.endDate);
   const startI = dayIndex(start);
@@ -1860,29 +2025,46 @@ function renderOneTask(lane, taskId, task, cat) {
   if (state.activeFilter && !(task.assignees || []).includes(state.activeFilter)) return;
 
   const node = document.createElement('div');
-  node.className = 'task' + (task.status === 'done' ? ' done' : '');
+  let cls = 'task';
+  if (task.status === 'done') cls += ' done';
+  if (conflicts && conflicts.length > 0) cls += ' has-conflict';
+  node.className = cls;
   node.dataset.taskId = taskId;
   const color = task.color || cat.color || PALETTE[0];
   node.style.background = `linear-gradient(180deg, ${color} 0%, ${shade(color, -12)} 100%)`;
   node.style.left = (startI * state.dayWidth + 2) + 'px';
   node.style.width = ((endI - startI + 1) * state.dayWidth - 4) + 'px';
 
+  // Build conflict tooltip
+  if (conflicts && conflicts.length > 0) {
+    const lines = conflicts.map(c => {
+      const peopleNames = c.people.map(uid => state.people[uid]?.name || uid).join(', ');
+      return `\u26a0 ${peopleNames} d\u00e9j\u00e0 sur "${c.otherTask.title}" (${c.otherTask.startDate} \u2192 ${c.otherTask.endDate})`;
+    });
+    node.title = 'Conflit:\n' + lines.join('\n');
+  }
+
   const peopleHtml = (task.assignees || []).map(uid => {
     const p = state.people[uid] || { initial: '?', color: '#666' };
     return `<div class="task-people-chip" style="background:${p.color};border-color:${shade(p.color, -20)}">${p.initial}</div>`;
   }).join('');
+
+  const conflictIcon = (conflicts && conflicts.length > 0)
+    ? `<div class="task-conflict-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>`
+    : '';
 
   node.innerHTML = `
     <div class="task-resize l"></div>
     <div class="task-checkmark" title="Marquer comme termin\u00e9e">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
+    ${conflictIcon}
     <div class="task-title">${escapeHtml(task.title || 'Sans titre')}</div>
     <div class="task-people">${peopleHtml}</div>
     <div class="task-resize r"></div>
   `;
 
-  // Checkmark click toggles status (without opening editor)
+  // Checkmark click toggles status
   node.querySelector('.task-checkmark').addEventListener('mousedown', (e) => e.stopPropagation());
   node.querySelector('.task-checkmark').addEventListener('click', (e) => {
     e.stopPropagation();
@@ -2415,14 +2597,22 @@ document.getElementById('btn-settings').onclick = openSettingsEditor;
 // EDITOR — TASK
 // ================================================================
 function createTaskAt(catId, subId, startDate) {
+  const cat = state.categories[catId];
+  let defaultTitle = 'Nouvelle t\u00e2che';
+  if (subId && cat?.subcategories?.[subId]) {
+    defaultTitle = cat.subcategories[subId].name;
+  } else if (cat?.name) {
+    defaultTitle = cat.name;
+  }
   const id = newId();
   const data = {
-    title: 'Nouvelle t\u00e2che',
+    title: defaultTitle,
     categoryId: catId,
     startDate: isoDate(startDate),
     endDate: isoDate(addDays(startDate, 2)),
     assignees: state.currentUser ? [state.currentUser] : [],
     notes: '',
+    status: 'todo',
     createdAt: Date.now()
   };
   if (subId) data.subcategoryId = subId;
@@ -2434,32 +2624,65 @@ document.getElementById('btn-add-task').onclick = () => {
     showStatus('Cr\u00e9e d\'abord une cat\u00e9gorie');
     return;
   }
-  const firstCat = Object.entries(state.categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0))[0][0];
-  createTaskAt(firstCat, null, new Date());
+  // Find first creatable target: prefer a cat with subs (use its first sub), else cat without subs
+  const cats = Object.entries(state.categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  for (const [cid, c] of cats) {
+    const subs = c.subcategories ? Object.entries(c.subcategories).sort((a,b)=>(a[1].order||0)-(b[1].order||0)) : [];
+    if (subs.length > 0) {
+      createTaskAt(cid, subs[0][0], new Date());
+      return;
+    }
+  }
+  // No cat had subs — use first cat without subs
+  for (const [cid, c] of cats) {
+    if (!c.subcategories || Object.keys(c.subcategories).length === 0) {
+      createTaskAt(cid, null, new Date());
+      return;
+    }
+  }
 };
 
 function openTaskEditor(taskId) {
   state.editingTask = taskId;
   state.editingCategory = null;
+  state.editingRubrique = null;
   const task = state.tasks[taskId];
   if (!task) return;
   document.getElementById('editor-title').textContent = 'T\u00e2che';
   const body = document.getElementById('editor-body');
 
-  const catOptions = Object.entries(state.categories)
-    .sort((a,b)=>(a[1].order||0)-(b[1].order||0))
-    .map(([id, c]) => `<option value="${id}" ${id===task.categoryId?'selected':''}>${escapeHtml(c.name)}</option>`)
-    .join('');
+  // Build unified cat+subcat options
+  const catArr = Object.entries(state.categories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+  const optionsHtml = catArr.map(([cid, c]) => {
+    const subs = c.subcategories ? Object.entries(c.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0)) : [];
+    if (subs.length === 0) {
+      const sel = (cid === task.categoryId && !task.subcategoryId) ? 'selected' : '';
+      return `<option value="${cid}" ${sel}>${escapeHtml(c.name)}</option>`;
+    }
+    let h = `<option disabled>\u2500\u2500 ${escapeHtml(c.name).toUpperCase()} \u2500\u2500</option>`;
+    subs.forEach(([sid, s]) => {
+      const v = `${cid}/${sid}`;
+      const sel = (cid === task.categoryId && sid === task.subcategoryId) ? 'selected' : '';
+      h += `<option value="${v}" ${sel}>\u00a0\u00a0\u00a0${escapeHtml(s.name)}</option>`;
+    });
+    return h;
+  }).join('');
 
-  const cat = state.categories[task.categoryId];
-  const subOptions = cat?.subcategories ?
-    `<option value="">— Aucune —</option>` +
-    Object.entries(cat.subcategories)
-      .sort((a,b)=>(a[1].order||0)-(b[1].order||0))
-      .map(([id, s]) => `<option value="${id}" ${id===task.subcategoryId?'selected':''}>${escapeHtml(s.name)}</option>`)
-      .join('') : '';
+  // Conflicts
+  const allConflicts = computeAllConflicts();
+  const taskConflicts = allConflicts[taskId] || [];
+  const conflictHtml = taskConflicts.length > 0
+    ? `<div class="conflict-warning">
+        <strong>\u26a0 Conflit d\u00e9tect\u00e9</strong><br>
+        ${taskConflicts.map(c => {
+          const peopleNames = c.people.map(uid => state.people[uid]?.name || uid).join(', ');
+          return `<strong>${escapeHtml(peopleNames)}</strong> est aussi sur "${escapeHtml(c.otherTask.title)}" du ${c.otherTask.startDate} au ${c.otherTask.endDate}`;
+        }).join('<br>')}
+      </div>`
+    : '';
 
   body.innerHTML = `
+    ${conflictHtml}
     <div class="status-toggle ${task.status === 'done' ? 'done' : ''}" id="t-status-toggle">
       <div class="status-toggle-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2481,10 +2704,9 @@ function openTaskEditor(taskId) {
       </div>
     </div>
     <div class="field">
-      <label class="field-label">Cat\u00e9gorie</label>
-      <select id="t-cat">${catOptions}</select>
+      <label class="field-label">Cat\u00e9gorie / sous-cat\u00e9gorie</label>
+      <select id="t-cat-sub">${optionsHtml}</select>
     </div>
-    ${subOptions ? `<div class="field"><label class="field-label">Sous-cat\u00e9gorie</label><select id="t-sub">${subOptions}</select></div>` : ''}
     <div class="field">
       <label class="field-label">Personnes</label>
       <div class="assignee-grid" id="t-people">
@@ -2517,20 +2739,20 @@ function openTaskEditor(taskId) {
     p.onclick = () => p.classList.toggle('active');
   });
 
-  // Live update on blur for title / dates / cat / sub / notes
+  // Live save
   const liveSave = () => {
     const title = document.getElementById('t-title').value.trim() || 'Sans titre';
     const startDate = document.getElementById('t-start').value;
     let endDate = document.getElementById('t-end').value;
     if (endDate < startDate) endDate = startDate;
-    const categoryId = document.getElementById('t-cat').value;
-    const subSel = document.getElementById('t-sub');
-    const subcategoryId = subSel ? (subSel.value || null) : null;
+    const sel = document.getElementById('t-cat-sub').value;
+    const parts = sel.split('/');
+    const categoryId = parts[0];
+    const subcategoryId = parts[1] || null;
     const notes = document.getElementById('t-notes').value;
     const assignees = [...body.querySelectorAll('.assignee-pill.active')].map(p => p.dataset.uid);
     const data = { title, startDate, endDate, categoryId, notes, assignees };
-    if (subcategoryId) data.subcategoryId = subcategoryId;
-    else data.subcategoryId = null;
+    data.subcategoryId = subcategoryId;
     saveTask(taskId, data);
   };
   body.querySelectorAll('input, select, textarea, .assignee-pill').forEach(el => {
@@ -2556,7 +2778,6 @@ function openTaskEditor(taskId) {
     liveSave();
     const t = state.tasks[taskId];
     if (!t) return;
-    // Compute duration in days, place duplicate right after original
     const start = parseISO(t.startDate);
     const end = parseISO(t.endDate);
     const durationDays = diffDays(start, end);
@@ -2570,6 +2791,7 @@ function openTaskEditor(taskId) {
       endDate: isoDate(newEnd),
       assignees: t.assignees ? [...t.assignees] : [],
       notes: t.notes || '',
+      status: 'todo',
       createdAt: Date.now()
     };
     if (t.subcategoryId) newData.subcategoryId = t.subcategoryId;
