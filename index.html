@@ -2045,11 +2045,19 @@ function renderLanes() {
 }
 
 function decorateCatSummaryLane(lane, cat, subs) {
-  // Find tasks that belong to any subcat of this cat
   const subIds = new Set(subs.map(s => s.id));
-  const subTasks = Object.values(state.tasks).filter(t => t.categoryId === cat.id && t.subcategoryId && subIds.has(t.subcategoryId));
+  // Apply same filters as renderTasks for consistency
+  const subTasks = Object.values(state.tasks).filter(t => {
+    if (t.categoryId !== cat.id) return false;
+    if (!t.subcategoryId || !subIds.has(t.subcategoryId)) return false;
+    if (state.filterPeople && state.filterPeople.size > 0) {
+      const matches = (t.assignees || []).some(uid => state.filterPeople.has(uid));
+      if (!matches) return false;
+    }
+    if (state.hideDone && t.status === 'done') return false;
+    return true;
+  });
   if (subTasks.length === 0) {
-    // Lane reste vide, juste fond strié (déjà via CSS)
     return;
   }
   // Compute time span
@@ -2757,7 +2765,7 @@ document.getElementById('btn-filters').onclick = (e) => {
       if (state.filterPeople.size === allUids.length) state.filterPeople = null;
       it.classList.toggle('checked');
       updateFilterUI();
-      renderTasks();
+      renderAll();
     };
   });
   // Rubrique filter click
@@ -2781,7 +2789,7 @@ document.getElementById('btn-filters').onclick = (e) => {
     state.hideDone = !state.hideDone;
     ev.currentTarget.classList.toggle('checked');
     updateFilterUI();
-    renderTasks();
+    renderAll();
   };
   // Reset
   filterDropdownEl.querySelector('[data-filter-act="reset"]').onclick = (ev) => {
