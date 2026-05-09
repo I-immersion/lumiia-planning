@@ -605,21 +605,29 @@ header {
     rgba(255,255,255,0.015);
   pointer-events: none;
 }
+.cat-summary-label-sticky {
+  position: sticky;
+  left: 0;
+  width: 0;
+  flex-shrink: 0;
+  align-self: center;
+  z-index: 6;
+  overflow: visible;
+  pointer-events: none;
+}
 .cat-summary-label {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
+  display: inline-block;
+  white-space: nowrap;
+  margin-left: 12px;
+  background: rgba(10, 10, 13, 0.92);
+  padding: 3px 8px;
+  border-radius: 5px;
   font-size: 10px;
   font-weight: 600;
   color: var(--text-faint);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  pointer-events: none;
-  background: rgba(10, 10, 13, 0.7);
-  padding: 3px 8px;
-  border-radius: 5px;
-  z-index: 5;
+  border: 1px solid var(--border);
 }
 .cat-summary-bar {
   position: absolute;
@@ -1184,7 +1192,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.7</div>
+    <div class="auth-sub">Planning · v0.8</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1195,7 +1203,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.7</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.8</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1903,13 +1911,18 @@ function decorateCatSummaryLane(lane, cat, subs) {
       lane.appendChild(bar);
     }
   }
-  // Counter label
-  const label = document.createElement('div');
+  // Counter label (sticky on left when scrolling horizontally)
+  const wrapper = document.createElement('div');
+  wrapper.className = 'cat-summary-label-sticky';
+  const label = document.createElement('span');
   label.className = 'cat-summary-label';
   const doneCount = subTasks.filter(t => t.status === 'done').length;
-  label.textContent = subTasks.length === 1 ? '1 t\u00e2che' : (subTasks.length + ' t\u00e2ches');
-  if (doneCount > 0) label.textContent += ' \u2022 ' + doneCount + ' \u2713';
-  lane.appendChild(label);
+  let txt = subTasks.length === 1 ? '1 t\u00e2che' : (subTasks.length + ' t\u00e2ches');
+  if (doneCount > 0) txt += ' \u2022 ' + doneCount + ' \u2713';
+  label.textContent = txt;
+  wrapper.appendChild(label);
+  // Insert as first child so it's at the visual start of the flex row
+  lane.insertBefore(wrapper, lane.firstChild);
 }
 
 function createLane(catId, subId, opts = {}) {
@@ -1990,14 +2003,22 @@ function renderTasks() {
 // --- CONFLICT DETECTION ---
 function computeAllConflicts() {
   const result = {};
-  const tasks = Object.entries(state.tasks);
-  for (let i = 0; i < tasks.length; i++) {
-    const [idA, a] = tasks[i];
+  // Only consider displayable tasks (cat exists, valid sub if cat has subs)
+  const displayable = Object.entries(state.tasks).filter(([_, t]) => {
+    const cat = state.categories[t.categoryId];
+    if (!cat) return false;
+    const hasSubs = cat.subcategories && Object.keys(cat.subcategories).length > 0;
+    if (hasSubs && !t.subcategoryId) return false;
+    if (t.subcategoryId && (!cat.subcategories || !cat.subcategories[t.subcategoryId])) return false;
+    return true;
+  });
+  for (let i = 0; i < displayable.length; i++) {
+    const [idA, a] = displayable[i];
     if (!a.assignees || a.assignees.length === 0 || a.status === 'done') continue;
     const aStart = parseISO(a.startDate).getTime();
     const aEnd = parseISO(a.endDate).getTime();
-    for (let j = i + 1; j < tasks.length; j++) {
-      const [idB, b] = tasks[j];
+    for (let j = i + 1; j < displayable.length; j++) {
+      const [idB, b] = displayable[j];
       if (!b.assignees || b.assignees.length === 0 || b.status === 'done') continue;
       const bStart = parseISO(b.startDate).getTime();
       const bEnd = parseISO(b.endDate).getTime();
