@@ -709,13 +709,14 @@ header {
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 8px;
-  display: flex !important;
+  display: none;
   flex-wrap: wrap;
   gap: 6px;
   z-index: 50;
   box-shadow: var(--shadow);
   width: 220px;
 }
+.person-color-picker.open { display: flex; }
 .person-color-picker .color-swatch {
   width: 28px;
   height: 28px;
@@ -883,7 +884,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.3</div>
+    <div class="auth-sub">Planning · v0.4</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -894,7 +895,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.3</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.4</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1025,6 +1026,8 @@ const EMAIL_TO_USER = {
   'aurelie@lumiia.fr': 'au',
   'marion.duizabo@hotmail.com': 'ma'
 };
+// Email mapping is also loadable from Firebase /planning/meta/email_map (overrides defaults)
+let dynamicEmailMap = {};
 
 const state = {
   currentUser: null,
@@ -1121,7 +1124,7 @@ document.getElementById('btn-logout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    state.currentUser = EMAIL_TO_USER[user.email] || 'em';
+    state.currentUser = dynamicEmailMap[user.email] || EMAIL_TO_USER[user.email] || 'em';
     $auth.classList.add('hidden');
     $app.classList.remove('hidden');
     initSync();
@@ -1150,6 +1153,14 @@ function initSync() {
   get(ref(db, `${ROOT}/meta/people`)).then(snap => {
     if (!snap.exists()) {
       set(ref(db, `${ROOT}/meta/people`), DEFAULT_PEOPLE);
+    }
+  });
+
+  // Email -> user mapping (configurable in Firebase)
+  onValue(ref(db, `${ROOT}/meta/email_map`), snap => {
+    dynamicEmailMap = snap.val() || {};
+    if (auth.currentUser) {
+      state.currentUser = dynamicEmailMap[auth.currentUser.email] || EMAIL_TO_USER[auth.currentUser.email] || 'em';
     }
   });
 
@@ -1712,7 +1723,7 @@ function personRowHtml(uid, p) {
       <button class="cat-mini-btn person-del" title="Supprimer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
-      <div class="person-color-picker" style="display:none">
+      <div class="person-color-picker">
         ${PALETTE.map(c => `<div class="color-swatch ${c === p.color ? 'active' : ''}" data-color="${c}" style="background:${c}"></div>`).join('')}
       </div>
     </div>
@@ -1738,17 +1749,21 @@ function bindPersonRow(row) {
   initInput.addEventListener('blur', save);
   initInput.addEventListener('input', () => { chip.textContent = initInput.value.toUpperCase().slice(0,3); });
 
-  colorBtn.onclick = () => {
-    picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+  colorBtn.onclick = (e) => {
+    e.stopPropagation();
+    // Close all other pickers first
+    document.querySelectorAll('.person-color-picker.open').forEach(p => { if (p !== picker) p.classList.remove('open'); });
+    picker.classList.toggle('open');
   };
   picker.querySelectorAll('.color-swatch').forEach(s => {
-    s.onclick = () => {
+    s.onclick = (e) => {
+      e.stopPropagation();
       const newColor = s.dataset.color;
       picker.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
       s.classList.add('active');
       chip.style.background = newColor;
       update(ref(db, `${ROOT}/meta/people/${uid}`), { color: newColor });
-      picker.style.display = 'none';
+      picker.classList.remove('open');
     };
   });
 
@@ -1756,7 +1771,6 @@ function bindPersonRow(row) {
     const p = state.people[uid];
     if (!p) return;
     if (!confirm(`Supprimer "${p.name}" ? Cette personne sera retir\u00e9e des t\u00e2ches o\u00f9 elle est assign\u00e9e.`)) return;
-    // Build update: remove person + unassign from tasks
     const updates = {};
     updates[`meta/people/${uid}`] = null;
     for (const [tid, t] of Object.entries(state.tasks)) {
@@ -1885,6 +1899,10 @@ function openTaskEditor(taskId) {
 
   document.getElementById('editor-foot').innerHTML = `
     <button class="btn btn-danger" id="t-delete">Supprimer</button>
+    <button class="btn" id="t-duplicate" title="Dupliquer la t\u00e2che">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Dupliquer
+    </button>
     <div style="flex:1"></div>
     <button class="btn btn-primary" id="t-close">Termin\u00e9</button>
   `;
@@ -1892,6 +1910,31 @@ function openTaskEditor(taskId) {
     if (!confirm('Supprimer cette t\u00e2che ?')) return;
     deleteTask(taskId);
     closeEditor();
+  };
+  document.getElementById('t-duplicate').onclick = async () => {
+    liveSave();
+    const t = state.tasks[taskId];
+    if (!t) return;
+    // Compute duration in days, place duplicate right after original
+    const start = parseISO(t.startDate);
+    const end = parseISO(t.endDate);
+    const durationDays = diffDays(start, end);
+    const newStart = addDays(end, 1);
+    const newEnd = addDays(newStart, durationDays);
+    const newId_ = newId();
+    const newData = {
+      title: t.title + ' (copie)',
+      categoryId: t.categoryId,
+      startDate: isoDate(newStart),
+      endDate: isoDate(newEnd),
+      assignees: t.assignees ? [...t.assignees] : [],
+      notes: t.notes || '',
+      createdAt: Date.now()
+    };
+    if (t.subcategoryId) newData.subcategoryId = t.subcategoryId;
+    if (t.color) newData.color = t.color;
+    await saveTask(newId_, newData);
+    openTaskEditor(newId_);
   };
   document.getElementById('t-close').onclick = () => { liveSave(); closeEditor(); };
   document.getElementById('editor').classList.add('open');
