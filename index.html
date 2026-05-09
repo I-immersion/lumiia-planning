@@ -1085,6 +1085,72 @@ header {
   .header-spacer { display: none; }
 }
 
+/* === USER CHIP === */
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  letter-spacing: -0.02em;
+  margin-left: 6px;
+  flex-shrink: 0;
+  background: #555;
+  cursor: default;
+  user-select: none;
+  border: 1.5px solid rgba(255,255,255,0.1);
+}
+
+/* === EVENT MARKERS === */
+.event-line {
+  position: absolute;
+  top: var(--time-header-h);
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.55;
+}
+.event-triangle {
+  position: absolute;
+  top: 26px;
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid;
+  cursor: pointer;
+  transform: translateX(-50%);
+  z-index: 35;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+  transition: transform 0.12s;
+}
+.event-triangle:hover {
+  transform: translateX(-50%) scale(1.3);
+}
+.event-tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 36;
+  box-shadow: var(--shadow-sm);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* === STATUS === */
 #status {
   position: fixed;
@@ -1192,7 +1258,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.8</div>
+    <div class="auth-sub">Planning · v1.0</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1203,7 +1269,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.8</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v1.0</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1226,6 +1292,11 @@ header {
 
     <div class="header-spacer"></div>
 
+    <button class="btn" id="btn-add-event" title="Nouvel \u00e9v\u00e9nement">
+      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 4 22 20 2 20"/></svg>
+      \u00c9v\u00e9nement
+    </button>
+
     <button class="btn btn-primary" id="btn-add-task">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Nouvelle t&#226;che
@@ -1234,6 +1305,8 @@ header {
     <button class="btn btn-icon" id="btn-settings" title="R&#233;glages">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
+
+    <div class="user-chip" id="user-chip" title="">??</div>
 
     <button class="btn btn-icon" id="btn-logout" title="D&#233;connexion">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1364,19 +1437,41 @@ let dynamicEmailMap = {};
 
 const state = {
   currentUser: null,
-  rubriques: {},         // { rubId: { name, order, expanded } }
-  categories: {},        // { catId: { name, color, order, expanded, rubriqueId?, subcategories } }
+  rubriques: {},
+  categories: {},
   tasks: {},
+  events: {},
   people: { ...DEFAULT_PEOPLE },
   dayWidth: 40,
-  activeFilter: null,    // user id or null
-  filterRubriques: null, // Set of rubrique IDs to show, or null = show all
+  activeFilter: null,
+  filterRubriques: null,
   rangeStart: null,
   rangeEnd: null,
   editingTask: null,
   editingCategory: null,
-  editingRubrique: null
+  editingRubrique: null,
+  editingEvent: null,
+  localExpanded: loadLocalExpanded()
 };
+
+// === LOCAL EXPANDED STATES (per-browser, not synced) ===
+const LS_KEY = 'lumiia_planning_local_v1';
+function loadLocalExpanded() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+}
+function saveLocalExpanded() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state.localExpanded)); } catch (e) {}
+}
+function isLocalExpanded(type, id, defaultVal = true) {
+  const key = type + '.' + id;
+  if (state.localExpanded[key] === false) return false;
+  if (state.localExpanded[key] === true) return true;
+  return defaultVal;
+}
+function setLocalExpanded(type, id, expanded) {
+  state.localExpanded[type + '.' + id] = expanded;
+  saveLocalExpanded();
+}
 
 // ================================================================
 // DATE UTILS
@@ -1460,7 +1555,8 @@ document.getElementById('btn-logout').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    state.currentUser = dynamicEmailMap[user.email] || EMAIL_TO_USER[user.email] || 'em';
+    const e = (user.email || '').toLowerCase();
+    state.currentUser = dynamicEmailMap[e] || EMAIL_TO_USER[user.email] || 'em';
     $auth.classList.add('hidden');
     $app.classList.remove('hidden');
     initSync();
@@ -1492,17 +1588,24 @@ function initSync() {
     }
   });
 
-  // Email -> user mapping (configurable in Firebase)
+  // Email -> user mapping (configurable in Firebase as { uid: email })
   onValue(ref(db, `${ROOT}/meta/email_map`), snap => {
-    dynamicEmailMap = snap.val() || {};
+    const raw = snap.val() || {};
+    dynamicEmailMap = {};
+    for (const [uid, email] of Object.entries(raw)) {
+      if (typeof email === 'string') dynamicEmailMap[email.toLowerCase()] = uid;
+    }
     if (auth.currentUser) {
-      state.currentUser = dynamicEmailMap[auth.currentUser.email] || EMAIL_TO_USER[auth.currentUser.email] || 'em';
+      const e = (auth.currentUser.email || '').toLowerCase();
+      state.currentUser = dynamicEmailMap[e] || EMAIL_TO_USER[auth.currentUser.email] || 'em';
+      updateUserChip();
     }
   });
 
   onValue(ref(db, `${ROOT}/meta/people`), snap => {
     state.people = snap.val() || DEFAULT_PEOPLE;
     renderPeopleFilter();
+    updateUserChip();
     renderAll();
   });
 
@@ -1522,6 +1625,28 @@ function initSync() {
     computeRange();
     renderAll();
   });
+
+  onValue(ref(db, `${ROOT}/events`), snap => {
+    state.events = snap.val() || {};
+    renderEvents();
+  });
+}
+
+// === USER CHIP ===
+function updateUserChip() {
+  const chip = document.getElementById('user-chip');
+  if (!chip) return;
+  const uid = state.currentUser;
+  const p = state.people[uid];
+  if (p) {
+    chip.textContent = p.initial;
+    chip.style.background = p.color;
+    chip.title = p.name + (auth.currentUser ? ' \u2014 ' + auth.currentUser.email : '');
+  } else {
+    chip.textContent = '?';
+    chip.style.background = '#555';
+    chip.title = auth.currentUser?.email || '';
+  }
 }
 
 function saveCategory(catId, data) {
@@ -1550,11 +1675,12 @@ function newId() {
 // RENDER
 // ================================================================
 function renderAll() {
-  computeRange(); // toujours recalculer la plage avant de render (s\u00e9curit\u00e9 quand state vide)
+  computeRange();
   renderTimeHeader();
   renderSidebar();
   renderLanes();
   renderTasks();
+  renderEvents();
   renderNowLine();
   updateEmpty();
 }
@@ -1620,30 +1746,24 @@ function renderTimeHeader() {
 
 // --- Helpers: build hierarchical view ---
 function buildHierarchy() {
-  // Returns array of { rubrique, cats: [{cat, subs: []}] } in display order
-  // Categories without a rubriqueId are grouped under a virtual "Sans rubrique"
   const byRub = new Map();
-  // Real rubriques
   const rubArr = Object.entries(state.rubriques).sort((a,b) => (a[1].order||0) - (b[1].order||0));
   rubArr.forEach(([rid, r]) => {
-    byRub.set(rid, { rubrique: { id: rid, ...r }, cats: [] });
+    byRub.set(rid, { rubrique: { id: rid, ...r, expanded: isLocalExpanded('rub', rid, true) }, cats: [] });
   });
-  // Virtual rubrique for cats without rubriqueId
   byRub.set('_orphans', { rubrique: { id: '_orphans', name: 'Sans rubrique', order: 9999, expanded: true, virtual: true }, cats: [] });
 
   const catArr = Object.entries(state.categories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
   catArr.forEach(([cid, c]) => {
     const rid = c.rubriqueId && byRub.has(c.rubriqueId) ? c.rubriqueId : '_orphans';
     const subs = c.subcategories ? Object.entries(c.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0)).map(([sid, s]) => ({ id: sid, ...s })) : [];
-    byRub.get(rid).cats.push({ cat: { id: cid, ...c }, subs });
+    byRub.get(rid).cats.push({ cat: { id: cid, ...c, expanded: isLocalExpanded('cat', cid, true) }, subs });
   });
 
-  // Apply filter
   let result = Array.from(byRub.values()).sort((a,b) => (a.rubrique.order||0) - (b.rubrique.order||0));
   if (state.filterRubriques) {
     result = result.filter(r => state.filterRubriques.has(r.rubrique.id));
   }
-  // Hide empty virtual orphans
   result = result.filter(r => !(r.rubrique.virtual && r.cats.length === 0));
   return result;
 }
@@ -1680,7 +1800,8 @@ function renderSidebar() {
       if (act === 'add-cat-in-rub') { e.stopPropagation(); addCategoryInRubrique(rubrique.id); return; }
       if (act === 'edit-rub') { e.stopPropagation(); openRubriqueEditor(rubrique.id); return; }
       if (isVirtual) return;
-      update(ref(db, `${ROOT}/rubriques/${rubrique.id}`), { expanded: rubrique.expanded === false });
+      setLocalExpanded('rub', rubrique.id, rubrique.expanded === false);
+      renderAll();
     };
     bindDragHandlers(rubRow);
     list.appendChild(rubRow);
@@ -1712,7 +1833,8 @@ function renderSidebar() {
         const act = e.target.closest('[data-action]')?.dataset.action;
         if (act === 'add-sub') { e.stopPropagation(); addSubcategory(cat.id); return; }
         if (act === 'edit-cat') { e.stopPropagation(); openCategoryEditor(cat.id); return; }
-        saveCategory(cat.id, { expanded: cat.expanded === false });
+        setLocalExpanded('cat', cat.id, cat.expanded === false);
+        renderAll();
       };
       bindDragHandlers(catRow);
       list.appendChild(catRow);
@@ -2115,6 +2237,111 @@ function renderNowLine() {
   line.style.top = 'var(--time-header-h)';
 }
 
+// --- EVENTS ---
+function renderEvents() {
+  // Clear existing event markers
+  document.querySelectorAll('.event-line, .event-triangle').forEach(n => n.remove());
+  if (!state.rangeStart) return;
+  const timeline = document.getElementById('timeline');
+  for (const [eid, ev] of Object.entries(state.events || {})) {
+    if (!ev.date) continue;
+    const d = parseISO(ev.date);
+    if (!d || isNaN(d.getTime())) continue;
+    const x = dayX(d) + state.dayWidth / 2;
+    const color = ev.color || '#3B82F6';
+
+    const line = document.createElement('div');
+    line.className = 'event-line';
+    line.style.left = x + 'px';
+    line.style.background = color;
+    line.style.boxShadow = `0 0 8px ${color}99`;
+    timeline.appendChild(line);
+
+    const tri = document.createElement('div');
+    tri.className = 'event-triangle';
+    tri.dataset.eventId = eid;
+    tri.style.left = x + 'px';
+    tri.style.borderTopColor = color;
+    tri.title = (ev.title || 'Sans titre') + ' \u2014 ' + ev.date;
+    tri.onclick = (e) => { e.stopPropagation(); openEventEditor(eid); };
+    timeline.appendChild(tri);
+  }
+}
+
+function saveEvent(eventId, data) {
+  return update(ref(db, `${ROOT}/events/${eventId}`), data);
+}
+function deleteEvent(eventId) {
+  return remove(ref(db, `${ROOT}/events/${eventId}`));
+}
+
+function openEventEditor(eventId, defaults = null) {
+  state.editingEvent = eventId;
+  state.editingTask = null;
+  state.editingCategory = null;
+  state.editingRubrique = null;
+  const isNew = !state.events?.[eventId];
+  const ev = state.events?.[eventId] || defaults || { title: '', date: isoDate(new Date()), color: '#3B82F6', notes: '' };
+  document.getElementById('editor-title').textContent = isNew ? 'Nouvel \u00e9v\u00e9nement' : '\u00c9v\u00e9nement';
+  const body = document.getElementById('editor-body');
+  const palette = ['#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#A78BFA', '#F472B6', '#06B6D4', '#FFB627'];
+  body.innerHTML = `
+    <div class="field">
+      <label class="field-label">Titre</label>
+      <input type="text" id="ev-title" value="${escapeHtml(ev.title || '')}" placeholder="Ex: Livraison rideaux, R\u00e9union mairie...">
+    </div>
+    <div class="field">
+      <label class="field-label">Date</label>
+      <input type="date" id="ev-date" value="${ev.date}">
+    </div>
+    <div class="field">
+      <label class="field-label">Couleur</label>
+      <div class="color-grid">
+        ${palette.map(c => `<div class="color-swatch ${c === ev.color ? 'active' : ''}" data-color="${c}" style="background:${c}"></div>`).join('')}
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Notes</label>
+      <textarea id="ev-notes" placeholder="Optionnel">${escapeHtml(ev.notes || '')}</textarea>
+    </div>
+  `;
+  body.querySelectorAll('.color-swatch').forEach(s => {
+    s.onclick = () => {
+      body.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+    };
+  });
+  document.getElementById('editor-foot').innerHTML = `
+    ${!isNew ? '<button class="btn btn-danger" id="ev-delete">Supprimer</button>' : ''}
+    <div style="flex:1"></div>
+    <button class="btn" id="ev-cancel">Annuler</button>
+    <button class="btn btn-primary" id="ev-save">${isNew ? 'Cr\u00e9er' : 'Enregistrer'}</button>
+  `;
+  document.getElementById('ev-save').onclick = async () => {
+    const title = document.getElementById('ev-title').value.trim();
+    if (!title) return;
+    const date = document.getElementById('ev-date').value;
+    const color = body.querySelector('.color-swatch.active')?.dataset.color || '#3B82F6';
+    const notes = document.getElementById('ev-notes').value;
+    const id = isNew ? newId() : eventId;
+    await saveEvent(id, { title, date, color, notes, createdAt: ev.createdAt || Date.now() });
+    closeEditor();
+  };
+  document.getElementById('ev-cancel').onclick = closeEditor;
+  if (!isNew) {
+    document.getElementById('ev-delete').onclick = () => {
+      if (!confirm('Supprimer cet \u00e9v\u00e9nement ?')) return;
+      deleteEvent(eventId);
+      closeEditor();
+    };
+  }
+  document.getElementById('editor').classList.add('open');
+}
+
+document.getElementById('btn-add-event').onclick = () => {
+  openEventEditor('_new', { title: '', date: isoDate(new Date()), color: '#3B82F6', notes: '' });
+};
+
 // ================================================================
 // DRAG & RESIZE
 // ================================================================
@@ -2385,20 +2612,18 @@ function openRubriqueEditor(rubId) {
 // FOLD BUTTONS
 // ================================================================
 document.querySelectorAll('.fold-btn').forEach(btn => {
-  btn.onclick = async () => {
+  btn.onclick = () => {
     const mode = btn.dataset.fold;
-    const updates = {};
-    // mode: 'all' = expand all rubriques + cats; 'cats' = expand rubriques, collapse cats; 'rub' = collapse rubriques
     if (mode === 'all') {
-      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = true);
-      Object.keys(state.categories).forEach(cid => updates[`categories/${cid}/expanded`] = true);
+      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
+      Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, true));
     } else if (mode === 'cats') {
-      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = true);
-      Object.keys(state.categories).forEach(cid => updates[`categories/${cid}/expanded`] = false);
+      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, true));
+      Object.keys(state.categories).forEach(cid => setLocalExpanded('cat', cid, false));
     } else if (mode === 'rub') {
-      Object.keys(state.rubriques).forEach(rid => updates[`rubriques/${rid}/expanded`] = false);
+      Object.keys(state.rubriques).forEach(rid => setLocalExpanded('rub', rid, false));
     }
-    await update(ref(db, ROOT), updates);
+    renderAll();
   };
 });
 
