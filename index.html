@@ -634,6 +634,84 @@ header {
   transform: translateY(-2px);
 }
 .task.dimmed { opacity: 0.25; }
+.task.done {
+  opacity: 0.5;
+  filter: saturate(0.4);
+}
+.task.done .task-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.task-checkmark {
+  width: 16px; height: 16px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-right: 4px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.task-checkmark:hover { border-color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); }
+.task.done .task-checkmark {
+  background: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.9);
+}
+.task-checkmark svg {
+  width: 10px; height: 10px;
+  color: rgba(0,0,0,0.7);
+  display: none;
+}
+.task.done .task-checkmark svg { display: block; }
+
+/* === DRAG REORDER INDICATORS === */
+.cat-row[draggable], .rub-row[draggable], .subcat-row[draggable] { user-select: none; }
+.cat-row.drag-over-top, .rub-row.drag-over-top, .subcat-row.drag-over-top {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.cat-row.drag-over-bottom, .rub-row.drag-over-bottom, .subcat-row.drag-over-bottom {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.cat-row.dragging-row, .rub-row.dragging-row, .subcat-row.dragging-row {
+  opacity: 0.4;
+}
+
+/* === TASK STATUS TOGGLE in editor === */
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.status-toggle:hover { border-color: var(--border-strong); }
+.status-toggle.done {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.4);
+}
+.status-toggle-icon {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.status-toggle.done .status-toggle-icon {
+  background: #4ade80;
+  border-color: #4ade80;
+}
+.status-toggle-icon svg { width: 12px; height: 12px; color: white; display: none; }
+.status-toggle.done .status-toggle-icon svg { display: block; }
+.status-toggle-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+.status-toggle.done .status-toggle-text { color: #4ade80; }
 .task-title {
   flex: 1;
   white-space: nowrap;
@@ -1030,7 +1108,7 @@ header {
 <div id="auth">
   <div class="auth-card">
     <div class="auth-logo">LUMIIA<span>.</span></div>
-    <div class="auth-sub">Planning · v0.5</div>
+    <div class="auth-sub">Planning · v0.6</div>
     <input type="email" id="auth-email" placeholder="Email" autocomplete="email">
     <input type="password" id="auth-pwd" placeholder="Mot de passe" autocomplete="current-password">
     <button class="auth-btn" id="auth-btn">Se connecter</button>
@@ -1041,7 +1119,7 @@ header {
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.5</span></div>
+    <div class="brand">LUMIIA<span>.</span><span class="brand-sub">Planning · v0.6</span></div>
 
     <div class="zoom-group" role="tablist">
       <button class="zoom-btn" data-zoom="28">Compact</button>
@@ -1497,6 +1575,8 @@ function renderSidebar() {
     const rubRow = document.createElement('div');
     rubRow.className = 'rub-row' + (rubrique.expanded === false ? ' collapsed' : '');
     rubRow.dataset.rubId = rubrique.id;
+    rubRow.dataset.dragType = 'rub';
+    if (!rubrique.virtual) rubRow.draggable = true;
     const isVirtual = !!rubrique.virtual;
     rubRow.innerHTML = `
       <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1518,6 +1598,7 @@ function renderSidebar() {
       if (isVirtual) return;
       update(ref(db, `${ROOT}/rubriques/${rubrique.id}`), { expanded: rubrique.expanded === false });
     };
+    bindDragHandlers(rubRow);
     list.appendChild(rubRow);
 
     if (rubrique.expanded === false) continue;
@@ -1527,6 +1608,9 @@ function renderSidebar() {
       const catRow = document.createElement('div');
       catRow.className = 'cat-row' + (cat.expanded === false ? ' collapsed' : '');
       catRow.dataset.catId = cat.id;
+      catRow.dataset.dragType = 'cat';
+      catRow.dataset.parentRub = rubrique.id;
+      catRow.draggable = true;
       catRow.innerHTML = `
         <svg class="cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         <div class="cat-color" style="background:${cat.color || PALETTE[0]}"></div>
@@ -1546,6 +1630,7 @@ function renderSidebar() {
         if (act === 'edit-cat') { e.stopPropagation(); openCategoryEditor(cat.id); return; }
         saveCategory(cat.id, { expanded: cat.expanded === false });
       };
+      bindDragHandlers(catRow);
       list.appendChild(catRow);
 
       if (cat.expanded === false) continue;
@@ -1554,6 +1639,11 @@ function renderSidebar() {
       for (const sub of subs) {
         const sRow = document.createElement('div');
         sRow.className = 'subcat-row';
+        sRow.dataset.catId = cat.id;
+        sRow.dataset.subId = sub.id;
+        sRow.dataset.dragType = 'sub';
+        sRow.dataset.parentCat = cat.id;
+        sRow.draggable = true;
         sRow.innerHTML = `
           <div class="subcat-name">${escapeHtml(sub.name)}</div>
           <div class="cat-actions">
@@ -1570,10 +1660,102 @@ function renderSidebar() {
           if (act === 'edit-sub') { e.stopPropagation(); editSubcategoryName(cat.id, sub.id, sub.name); return; }
           if (act === 'del-sub') { e.stopPropagation(); confirmDeleteSubcategory(cat.id, sub.id); return; }
         };
+        bindDragHandlers(sRow);
         list.appendChild(sRow);
       }
     }
   }
+}
+
+// --- DRAG REORDER ---
+let dragInfo = null; // { type, id, parentId? }
+function bindDragHandlers(row) {
+  row.addEventListener('dragstart', (e) => {
+    const type = row.dataset.dragType;
+    const id = type === 'rub' ? row.dataset.rubId : type === 'cat' ? row.dataset.catId : row.dataset.subId;
+    dragInfo = {
+      type,
+      id,
+      parentRub: row.dataset.parentRub,
+      parentCat: row.dataset.parentCat
+    };
+    row.classList.add('dragging-row');
+    e.dataTransfer.effectAllowed = 'move';
+    // Required for Firefox
+    e.dataTransfer.setData('text/plain', id);
+  });
+  row.addEventListener('dragend', () => {
+    row.classList.remove('dragging-row');
+    document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    dragInfo = null;
+  });
+  row.addEventListener('dragover', (e) => {
+    if (!dragInfo) return;
+    // Only same type can be reordered together
+    const targetType = row.dataset.dragType;
+    if (targetType !== dragInfo.type) return;
+    // Subcategories: only within same parent cat
+    if (dragInfo.type === 'sub' && row.dataset.parentCat !== dragInfo.parentCat) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = row.getBoundingClientRect();
+    const middle = rect.top + rect.height / 2;
+    document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom'));
+    if (e.clientY < middle) row.classList.add('drag-over-top');
+    else row.classList.add('drag-over-bottom');
+  });
+  row.addEventListener('drop', async (e) => {
+    if (!dragInfo) return;
+    const targetType = row.dataset.dragType;
+    if (targetType !== dragInfo.type) return;
+    if (dragInfo.type === 'sub' && row.dataset.parentCat !== dragInfo.parentCat) return;
+    e.preventDefault();
+    const rect = row.getBoundingClientRect();
+    const middle = rect.top + rect.height / 2;
+    const before = e.clientY < middle;
+    const targetId = targetType === 'rub' ? row.dataset.rubId : targetType === 'cat' ? row.dataset.catId : row.dataset.subId;
+    if (targetId === dragInfo.id) return;
+    await reorderItems(dragInfo.type, dragInfo.id, targetId, before, dragInfo);
+  });
+}
+
+async function reorderItems(type, sourceId, targetId, beforeTarget, info) {
+  // Get sorted list, compute new orders, update Firebase
+  let items, basePath;
+  if (type === 'rub') {
+    items = Object.entries(state.rubriques).filter(([id, _]) => id !== '_orphans').sort((a,b) => (a[1].order||0) - (b[1].order||0));
+    basePath = 'rubriques';
+  } else if (type === 'cat') {
+    // Cats within the same rubrique only (or all "orphans" together)
+    const targetRub = state.categories[targetId]?.rubriqueId || null;
+    const sourceRub = state.categories[sourceId]?.rubriqueId || null;
+    items = Object.entries(state.categories).filter(([_, c]) => (c.rubriqueId || null) === targetRub).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+    basePath = 'categories';
+    // If moving across rubriques, also update rubriqueId on the source
+    if (sourceRub !== targetRub) {
+      await update(ref(db, `${ROOT}/categories/${sourceId}`), { rubriqueId: targetRub });
+    }
+  } else if (type === 'sub') {
+    const cat = state.categories[info.parentCat];
+    if (!cat || !cat.subcategories) return;
+    items = Object.entries(cat.subcategories).sort((a,b) => (a[1].order||0) - (b[1].order||0));
+    basePath = `categories/${info.parentCat}/subcategories`;
+  }
+
+  // Build new order array
+  const ids = items.map(([id]) => id).filter(id => id !== sourceId);
+  const targetIdx = ids.indexOf(targetId);
+  const insertAt = beforeTarget ? targetIdx : targetIdx + 1;
+  ids.splice(insertAt, 0, sourceId);
+
+  // Apply new orders
+  const updates = {};
+  ids.forEach((id, i) => {
+    updates[`${basePath}/${id}/order`] = i;
+  });
+  await update(ref(db, ROOT), updates);
 }
 
 // --- LANES ---
@@ -1678,7 +1860,7 @@ function renderOneTask(lane, taskId, task, cat) {
   if (state.activeFilter && !(task.assignees || []).includes(state.activeFilter)) return;
 
   const node = document.createElement('div');
-  node.className = 'task';
+  node.className = 'task' + (task.status === 'done' ? ' done' : '');
   node.dataset.taskId = taskId;
   const color = task.color || cat.color || PALETTE[0];
   node.style.background = `linear-gradient(180deg, ${color} 0%, ${shade(color, -12)} 100%)`;
@@ -1692,10 +1874,21 @@ function renderOneTask(lane, taskId, task, cat) {
 
   node.innerHTML = `
     <div class="task-resize l"></div>
+    <div class="task-checkmark" title="Marquer comme termin\u00e9e">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
     <div class="task-title">${escapeHtml(task.title || 'Sans titre')}</div>
     <div class="task-people">${peopleHtml}</div>
     <div class="task-resize r"></div>
   `;
+
+  // Checkmark click toggles status (without opening editor)
+  node.querySelector('.task-checkmark').addEventListener('mousedown', (e) => e.stopPropagation());
+  node.querySelector('.task-checkmark').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const newStatus = task.status === 'done' ? 'todo' : 'done';
+    saveTask(taskId, { status: newStatus });
+  });
 
   node.addEventListener('mousedown', (e) => startDrag(e, taskId, node));
   node.addEventListener('click', (e) => {
@@ -2267,7 +2460,13 @@ function openTaskEditor(taskId) {
       .join('') : '';
 
   body.innerHTML = `
-    <div class="field">
+    <div class="status-toggle ${task.status === 'done' ? 'done' : ''}" id="t-status-toggle">
+      <div class="status-toggle-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="status-toggle-text" id="t-status-text">${task.status === 'done' ? 'T\u00e2che termin\u00e9e' : 'Marquer comme termin\u00e9e'}</div>
+    </div>
+    <div class="field" style="margin-top:18px;">
       <label class="field-label">Titre</label>
       <input type="text" id="t-title" value="${escapeHtml(task.title || '')}">
     </div>
@@ -2303,6 +2502,16 @@ function openTaskEditor(taskId) {
       <textarea id="t-notes" placeholder="Optionnel">${escapeHtml(task.notes || '')}</textarea>
     </div>
   `;
+
+  // Status toggle
+  document.getElementById('t-status-toggle').onclick = () => {
+    const cur = state.tasks[taskId];
+    const newStatus = cur && cur.status === 'done' ? 'todo' : 'done';
+    saveTask(taskId, { status: newStatus });
+    const tog = document.getElementById('t-status-toggle');
+    tog.classList.toggle('done', newStatus === 'done');
+    document.getElementById('t-status-text').textContent = newStatus === 'done' ? 'T\u00e2che termin\u00e9e' : 'Marquer comme termin\u00e9e';
+  };
 
   body.querySelectorAll('.assignee-pill').forEach(p => {
     p.onclick = () => p.classList.toggle('active');
